@@ -33,8 +33,8 @@ function theme_setup() {
 
     // Register navigation menus
     register_nav_menus( array(
-        'primary'   => __( 'Primary Navigation', 'your-theme-name' ),
-        'secondary' => __( 'Secondary Navigation', 'your-theme-name' ),
+        'primary'   => __( 'Primary Navigation', 'ng-andersen' ),
+        'secondary' => __( 'Secondary Navigation', 'ng-andersen' ),
     ) );
 }
 add_action( 'after_setup_theme', 'theme_setup' );
@@ -139,15 +139,15 @@ add_filter( 'wp_resource_hints', 'theme_preconnect_hints', 10, 2 );
 function theme_register_widget_areas() {
     $footer_columns = array(
         array(
-            'name' => __( 'Footer Column 1', 'your-theme-name' ),
+            'name' => __( 'Footer Column 1', 'ng-andersen' ),
             'id'   => 'footer-column-1',
         ),
         array(
-            'name' => __( 'Footer Column 2', 'your-theme-name' ),
+            'name' => __( 'Footer Column 2', 'ng-andersen' ),
             'id'   => 'footer-column-2',
         ),
         array(
-            'name' => __( 'Footer Column 3', 'your-theme-name' ),
+            'name' => __( 'Footer Column 3', 'ng-andersen' ),
             'id'   => 'footer-column-3',
         ),
     );
