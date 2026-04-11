@@ -64,6 +64,14 @@ function theme_enqueue_assets() {
         wp_get_theme()->get( 'Version' )
     );
 
+    // Custom overrides — loaded after app.css
+    wp_enqueue_style(
+        'theme-custom',
+        get_template_directory_uri() . '/assets/css/custom.css',
+        array( 'theme-styles' ),
+        wp_get_theme()->get( 'Version' )
+    );
+
     // --- Scripts ---
 
     // Main compiled JS bundle (includes Foundation and all custom JS)
