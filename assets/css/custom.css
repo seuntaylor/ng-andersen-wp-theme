@@ -1,0 +1,23 @@
+.main-nav ul.lvl-1 .sub-menu a {
+    color: #464646;
+    padding: 10px 12px !important;
+}
+
+.main-nav ul.lvl-1 .sub-menu a:hover {
+    background: #f0f0f0;
+    color: #464646;
+}
+
+/*
+ * Dropdown submenu container
+ * Maps WordPress .sub-menu to match the static template's .lvl-2 styles
+ */
+.main-nav ul.sub-menu {
+    text-align: left;
+    width: 18.125rem;
+    background: #f9f9f9 !important;
+    border: none !important;
+    -webkit-box-shadow: .125rem .125rem .125rem 0 #a3aaae;
+    box-shadow: .125rem .125rem .125rem 0 #a3aaae;
+    padding-inline-start: 0;
+}
