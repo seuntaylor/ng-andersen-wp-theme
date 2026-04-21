@@ -17,7 +17,7 @@
  */
 ?>
 <div id="map-container">
-
+ 
     <div class="breadcrumbs-section">
         <div class="container">
             <div class="breadcrumbs">
@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-
+ 
     <div class="map-filter-form">
         <label style="color:transparent" id="map-filter">Country Location Map
             <form name="map-filter" id="map-filter-form">
@@ -38,11 +38,11 @@
                     </select>
                     <input type="submit" name="submit" aria-label="Submit form to filter locations to selected country" class="hide-submit-button">
                 </p>
-
+ 
                 <p style="margin-bottom:0; padding-bottom:0;"><strong>Please click pins below to hide or show locations</strong></p>
-
+ 
                 <div id="maplegend">
-
+ 
                     <div class="legend memberfirms">
                         <br>
                         <div class="switch-container">
@@ -55,7 +55,7 @@
                             <span>Member Firms of Andersen Global</span>
                         </div>
                     </div>
-
+ 
                     <div class="legend collabfirms">
                         <br>
                         <div class="switch-container">
@@ -68,7 +68,7 @@
                             <span>Collaborating Firms of Andersen Global</span>
                         </div>
                     </div>
-
+ 
                     <div class="legend consultfirms">
                         <br>
                         <div class="switch-container">
@@ -81,7 +81,7 @@
                             <span>Andersen Consulting</span>
                         </div>
                     </div>
-
+ 
                     <div class="legend consultcolabfirms">
                         <br>
                         <div class="switch-container">
@@ -94,19 +94,64 @@
                             <span>Andersen Consulting Collaborating Firms</span>
                         </div>
                     </div>
-
+ 
                 </div>
-
+ 
             </form>
         </label>
     </div>
-
+ 
     <div id="mapdiv"></div>
-
+ 
     <form name="formx">
         <input type="hidden" id="start_country" value="">
     </form>
-
+ 
     <div id="individual_offices"></div>
-
+ 
 </div>
+ 
+<script type="text/javascript">
+/**
+ * Initialise map dropdown filter and individual offices list.
+ * These external scripts load in footer but don't auto-initialise,
+ * so we need to manually hook them up to DOM events.
+ */
+jQuery(document).ready(function() {
+    
+    // Wait a bit for all map scripts to fully execute
+    setTimeout(function() {
+        
+        // Get the country select element
+        var $countrySelect = jQuery('#country_select');
+        
+        if ($countrySelect.length) {
+            
+            // If selectArea function exists (from map-dropdown-filter.js),
+            // bind it to the select change event
+            if (typeof window.selectArea === 'function') {
+                $countrySelect.on('change', function() {
+                    window.selectArea(this);
+                });
+            }
+            
+            // Try to trigger map initialisation if a function exists
+            if (typeof window.initMap === 'function') {
+                window.initMap();
+            }
+            
+            // If there's an initialisation function from indiv_offices scripts
+            if (typeof window.getOffices === 'function') {
+                window.getOffices();
+            }
+            
+            // Some map scripts use onchange handlers, try firing the change event
+            // to trigger any handlers that were set up
+            var event = new Event('change', { bubbles: true });
+            $countrySelect[0].dispatchEvent(event);
+        }
+        
+    }, 500); // 500ms delay to ensure all scripts are ready
+    
+});
+</script>

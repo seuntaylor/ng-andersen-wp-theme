@@ -9,18 +9,18 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-
+ 
 // ------------------------------------------------------------
 // 1. THEME SETUP
 // ------------------------------------------------------------
-
+ 
 function theme_setup() {
     // Allow WordPress to manage the document title
     add_theme_support( 'title-tag' );
-
+ 
     // Enable post thumbnail support
     add_theme_support( 'post-thumbnails' );
-
+ 
     // Enable HTML5 markup for core elements
     add_theme_support( 'html5', array(
         'search-form',
@@ -31,7 +31,7 @@ function theme_setup() {
         'style',
         'script',
     ) );
-
+ 
     // Register navigation menus
     register_nav_menus( array(
         'primary'   => __( 'Primary Navigation', 'your-theme-name' ),
@@ -39,16 +39,16 @@ function theme_setup() {
     ) );
 }
 add_action( 'after_setup_theme', 'theme_setup' );
-
-
+ 
+ 
 // ------------------------------------------------------------
 // 2. ENQUEUE STYLES AND SCRIPTS
 // ------------------------------------------------------------
-
+ 
 function theme_enqueue_assets() {
-
+ 
     // --- Styles ---
-
+ 
     // Google Fonts: Roboto Condensed, Roboto, Work Sans
     wp_enqueue_style(
         'google-fonts',
@@ -56,7 +56,7 @@ function theme_enqueue_assets() {
         array(),
         null
     );
-
+ 
     // Main compiled stylesheet
     wp_enqueue_style(
         'theme-styles',
@@ -64,27 +64,25 @@ function theme_enqueue_assets() {
         array( 'google-fonts' ),
         wp_get_theme()->get( 'Version' )
     );
-
-    // Custom overrides — loaded after app.css
-    wp_enqueue_style(
-        'theme-custom',
-        get_template_directory_uri() . '/assets/css/custom.css',
-        array( 'theme-styles' ),
-        wp_get_theme()->get( 'Version' )
-    );
-
+ 
     // --- Scripts ---
-
+ 
     // Main compiled JS bundle (includes Foundation and all custom JS)
     // Loaded in footer, depends on jQuery
+    // On Locations page, also depends on map-bootstrap to load after all map scripts
+    $theme_scripts_deps = array( 'jquery' );
+    if ( is_page_template( 'templates/page-locations.php' ) ) {
+        $theme_scripts_deps[] = 'map-bootstrap';
+    }
+ 
     wp_enqueue_script(
         'theme-scripts',
         get_template_directory_uri() . '/assets/js/app.js',
-        array( 'jquery' ),
+        $theme_scripts_deps,
         wp_get_theme()->get( 'Version' ),
         true
     );
-
+ 
     // External: countries dropdown data
     wp_enqueue_script(
         'andersen-countries',
@@ -93,7 +91,7 @@ function theme_enqueue_assets() {
         null,
         true
     );
-
+ 
     // External: office reach data
     wp_enqueue_script(
         'andersen-reach-data',
@@ -102,14 +100,14 @@ function theme_enqueue_assets() {
         null,
         true
     );
-
+ 
     // Inline: parse_countries() function
     // Must load after theme-scripts (jQuery available) and before the external data scripts
     $parse_countries_js = "
         function parse_countries(data) {
             var \$menu = jQuery('.locations.dropdown .menu');
             \$menu.children().remove();
-
+ 
             if (data && data.countries) {
                 for (var i = 0; data.countries[i]; i++) {
                     var country = data.countries[i];
@@ -125,12 +123,12 @@ function theme_enqueue_assets() {
     wp_add_inline_script( 'theme-scripts', $parse_countries_js );
 }
 add_action( 'wp_enqueue_scripts', 'theme_enqueue_assets' );
-
-
+ 
+ 
 // ------------------------------------------------------------
 // 3. PRECONNECT HINTS FOR GOOGLE FONTS
 // ------------------------------------------------------------
-
+ 
 function theme_preconnect_hints( $hints, $relation_type ) {
     if ( 'preconnect' === $relation_type ) {
         $hints[] = array( 'href' => 'https://fonts.googleapis.com' );
@@ -139,12 +137,12 @@ function theme_preconnect_hints( $hints, $relation_type ) {
     return $hints;
 }
 add_filter( 'wp_resource_hints', 'theme_preconnect_hints', 10, 2 );
-
-
+ 
+ 
 // ------------------------------------------------------------
 // 4. WIDGET AREAS
 // ------------------------------------------------------------
-
+ 
 function theme_register_widget_areas() {
     $footer_columns = array(
         array(
@@ -160,7 +158,7 @@ function theme_register_widget_areas() {
             'id'   => 'footer-column-3',
         ),
     );
-
+ 
     foreach ( $footer_columns as $column ) {
         register_sidebar( array(
             'name'          => $column['name'],
@@ -173,63 +171,63 @@ function theme_register_widget_areas() {
     }
 }
 add_action( 'widgets_init', 'theme_register_widget_areas' );
-
-
+ 
+ 
 // ------------------------------------------------------------
 // 5. BODY CLASS ADDITIONS
 // ------------------------------------------------------------
-
+ 
 function theme_body_classes( $classes ) {
     // Add slug-based class matching the static template's {{page}} variable
     if ( is_singular() ) {
         global $post;
         $classes[] = $post->post_name;
     }
-
+ 
     return $classes;
 }
 add_filter( 'body_class', 'theme_body_classes' );
-
-
+ 
+ 
 // ------------------------------------------------------------
 // 6. PAGE-SPECIFIC ASSETS — LOCATIONS MAP
 // ------------------------------------------------------------
-
+ 
 function theme_enqueue_locations_assets() {
-
+ 
     // Only load on pages using the Locations page template
     if ( ! is_page_template( 'templates/page-locations.php' ) ) {
         return;
     }
-
+ 
     // --- Stylesheets ---
-
+ 
     wp_enqueue_style(
         'atmap-styles',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/atmap.css',
         array(),
         null
     );
-
+ 
     wp_enqueue_style(
         'ammap-styles',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/ammap_3.20.17/ammap/ammap.css',
         array(),
         null
     );
-
+ 
     wp_enqueue_style(
         'map-legend-styles',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/map-legend-styles.css',
         array(),
         null
     );
-
+ 
     // --- Scripts ---
     // Load order mirrors the static template exactly.
     // Data scripts load in the <head> (false = not in footer).
     // Rendering scripts load in the footer (true = in footer).
-
+ 
     // Step 1: Data scripts — must be available before map renders
     wp_enqueue_script(
         'map-us-offices',
@@ -238,7 +236,7 @@ function theme_enqueue_locations_assets() {
         null,
         false
     );
-
+ 
     wp_enqueue_script(
         'map-markers',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/mapmarkers.js',
@@ -246,7 +244,7 @@ function theme_enqueue_locations_assets() {
         null,
         false
     );
-
+ 
     wp_enqueue_script(
         'map-countries-list',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/countries_list.js',
@@ -254,15 +252,15 @@ function theme_enqueue_locations_assets() {
         null,
         false
     );
-
+ 
     wp_enqueue_script(
         'ammap-responsive',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/ammap_3.20.17/ammap/plugins/responsive/responsive.min.js',
-        array( 'map-countries-list' ),
+        array( 'ammap-core' ),
         null,
-        false
+        true
     );
-
+ 
     // Step 2: amCharts core library and world map data
     wp_enqueue_script(
         'ammap-core',
@@ -271,7 +269,7 @@ function theme_enqueue_locations_assets() {
         null,
         true
     );
-
+ 
     wp_enqueue_script(
         'ammap-world',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/ammap_3.20.17/ammap/maps/js/worldLow.js',
@@ -279,16 +277,23 @@ function theme_enqueue_locations_assets() {
         null,
         true
     );
-
+ 
+    // Make $ available to map scripts that expect it (WordPress uses noConflict mode)
+    wp_add_inline_script(
+        'ammap-world',
+        'var $ = jQuery;',
+        'after'
+    );
+ 
     // Step 3: Main map initialisation — renders the map into #mapdiv
     wp_enqueue_script(
         'map-world-init',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/world_map.js',
-        array( 'ammap-world' ),
+        array( 'jquery', 'ammap-world' ),
         null,
         true
     );
-
+ 
     // Step 4: Dropdown filter — populates #country_select and handles
     // zoom-to-country behaviour. Must load after map is initialised.
     wp_enqueue_script(
@@ -298,7 +303,7 @@ function theme_enqueue_locations_assets() {
         null,
         true
     );
-
+ 
     // Step 5: Individual offices — populates #individual_offices only
     // when a country is selected. Must load after dropdown filter.
     wp_enqueue_script(
@@ -308,7 +313,7 @@ function theme_enqueue_locations_assets() {
         null,
         true
     );
-
+ 
     wp_enqueue_script(
         'map-indiv-offices-2',
         'https://15fdb71145.nxcli.io/assets/global/filtered/beta/mapc/indiv_offices2.js',
@@ -316,7 +321,7 @@ function theme_enqueue_locations_assets() {
         null,
         true
     );
-
+ 
     // Step 6: Bootstrap — UI components for office detail panels
     wp_enqueue_script(
         'map-bootstrap',
