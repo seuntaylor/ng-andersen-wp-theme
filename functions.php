@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// ------------------------------------------------------------
+// ============================================================
 // 1. THEME SETUP
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_setup() {
     // Allow WordPress to manage the document title
@@ -41,9 +41,9 @@ function theme_setup() {
 add_action( 'after_setup_theme', 'theme_setup' );
 
 
-// ------------------------------------------------------------
+// ============================================================
 // 2. ENQUEUE STYLES AND SCRIPTS
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_enqueue_assets() {
 
@@ -110,7 +110,7 @@ function theme_enqueue_assets() {
     );
 
     // Inline: parse_countries() function
-    // Must load after theme-scripts (jQuery available) and before the external data scripts
+    // SECURITY FIX: Validate URLs before using them
     $parse_countries_js = "
         function parse_countries(data) {
             var \$menu = jQuery('.locations.dropdown .menu');
@@ -120,9 +120,13 @@ function theme_enqueue_assets() {
                 for (var i = 0; data.countries[i]; i++) {
                     var country = data.countries[i];
                     if (country.name != 'Andersen Global') {
-                        \$menu.append(
-                            '<li><a href=\"' + country.link + '\" data-href=\"' + country.link + '\" target=\"_blank\">' + country.name + '</a></li>'
-                        );
+                        // Validate URL format before using
+                        var isValidUrl = country.link && /^https?:\/\/.+/.test(country.link);
+                        if (isValidUrl) {
+                            \$menu.append(
+                                '<li><a href=\"' + country.link + '\" data-href=\"' + country.link + '\" target=\"_blank\">' + country.name + '</a></li>'
+                            );
+                        }
                     }
                 }
             }
@@ -142,7 +146,7 @@ function theme_enqueue_assets() {
 
         // Localize script data for AJAX
         wp_localize_script( 'theme-custom-js', 'teamSearchData', array(
-            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
             'nonce'   => wp_create_nonce( 'team_search_nonce' ),
         ) );
     }
@@ -150,9 +154,9 @@ function theme_enqueue_assets() {
 add_action( 'wp_enqueue_scripts', 'theme_enqueue_assets' );
 
 
-// ------------------------------------------------------------
+// ============================================================
 // 3. PRECONNECT HINTS FOR GOOGLE FONTS
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_preconnect_hints( $hints, $relation_type ) {
     if ( 'preconnect' === $relation_type ) {
@@ -164,9 +168,9 @@ function theme_preconnect_hints( $hints, $relation_type ) {
 add_filter( 'wp_resource_hints', 'theme_preconnect_hints', 10, 2 );
 
 
-// ------------------------------------------------------------
+// ============================================================
 // 4. WIDGET AREAS
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_register_widget_areas() {
     $footer_columns = array(
@@ -198,15 +202,17 @@ function theme_register_widget_areas() {
 add_action( 'widgets_init', 'theme_register_widget_areas' );
 
 
-// ------------------------------------------------------------
+// ============================================================
 // 5. BODY CLASS ADDITIONS
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_body_classes( $classes ) {
     // Add slug-based class matching the static template's {{page}} variable
     if ( is_singular() ) {
         global $post;
-        $classes[] = $post->post_name;
+        if ( $post ) {
+            $classes[] = $post->post_name;
+        }
     }
 
     return $classes;
@@ -214,674 +220,9 @@ function theme_body_classes( $classes ) {
 add_filter( 'body_class', 'theme_body_classes' );
 
 
-// ------------------------------------------------------------
-// 7. CUSTOM POST TYPE — HOME SLIDES
-// ------------------------------------------------------------
-
-function theme_register_home_slides_cpt() {
-    $labels = array(
-        'name'               => 'Home Slides',
-        'singular_name'      => 'Home Slide',
-        'menu_name'          => 'Home Slides',
-        'all_items'          => 'All Slides',
-        'add_new'            => 'Add New Slide',
-        'add_new_item'       => 'Add New Home Slide',
-        'edit_item'          => 'Edit Home Slide',
-        'view_item'          => 'View Home Slide',
-        'search_items'       => 'Search Home Slides',
-    );
-
-    $args = array(
-        'labels'            => $labels,
-        'public'            => false,
-        'show_ui'           => true,
-        'show_in_menu'      => true,
-        'menu_position'     => 5,
-        'menu_icon'         => 'dashicons-slides',
-        'supports'          => array( 'title', 'thumbnail', 'page-attributes' ),
-        'has_archive'       => false,
-        'rewrite'           => false,
-        'show_in_rest'      => false,
-    );
-
-    register_post_type( 'home_slide', $args );
-}
-add_action( 'init', 'theme_register_home_slides_cpt' );
-
-
-// Home Slides custom meta boxes
-function theme_add_home_slide_meta_boxes() {
-    add_meta_box(
-        'home_slide_content',
-        'Slide Content',
-        'theme_render_home_slide_content_meta_box',
-        'home_slide',
-        'normal',
-        'high'
-    );
-
-    add_meta_box(
-        'home_slide_cta',
-        'Call to Action (Optional)',
-        'theme_render_home_slide_cta_meta_box',
-        'home_slide',
-        'normal',
-        'default'
-    );
-}
-add_action( 'add_meta_boxes', 'theme_add_home_slide_meta_boxes' );
-
-
-// Render content meta box — body text only
-function theme_render_home_slide_content_meta_box( $post ) {
-    wp_nonce_field( 'home_slide_nonce', 'home_slide_nonce' );
-
-    $body = get_post_meta( $post->ID, '_home_slide_body', true );
-    ?>
-
-    <div>
-        <label for="home_slide_body" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Body Text
-        </label>
-        <textarea
-            id="home_slide_body"
-            name="home_slide_body"
-            rows="6"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"
-        ><?php echo esc_textarea( $body ); ?></textarea>
-        <p style="font-size: 12px; color: #666; margin-top: 5px;">
-            The subtitle or descriptive text for this slide. Set the slide image using the Featured Image panel on the right.
-        </p>
-    </div>
-    <?php
-}
-
-
-// Render CTA meta box
-function theme_render_home_slide_cta_meta_box( $post ) {
-    $button_text = get_post_meta( $post->ID, '_home_slide_button_text', true );
-    $button_url = get_post_meta( $post->ID, '_home_slide_button_url', true );
-    ?>
-
-    <p style="font-size: 12px; color: #666; margin-bottom: 16px;">
-        Both button text and URL must be provided to display the button. Leave both empty to hide the button.
-    </p>
-
-    <div style="margin-bottom: 16px;">
-        <label for="home_slide_button_text" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Button Text
-        </label>
-        <input
-            type="text"
-            id="home_slide_button_text"
-            name="home_slide_button_text"
-            value="<?php echo esc_attr( $button_text ); ?>"
-            placeholder="e.g., Learn More"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
-        >
-    </div>
-
-    <div>
-        <label for="home_slide_button_url" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Button URL
-        </label>
-        <input
-            type="url"
-            id="home_slide_button_url"
-            name="home_slide_button_url"
-            value="<?php echo esc_url( $button_url ); ?>"
-            placeholder="https://example.com"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
-        >
-    </div>
-    <?php
-}
-
-
-// Save home slide meta
-function theme_save_home_slide_meta( $post_id ) {
-    if ( ! isset( $_POST['home_slide_nonce'] ) || ! wp_verify_nonce( $_POST['home_slide_nonce'], 'home_slide_nonce' ) ) {
-        return;
-    }
-
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        return;
-    }
-
-    if ( ! current_user_can( 'edit_post', $post_id ) ) {
-        return;
-    }
-
-    // Save body
-    if ( isset( $_POST['home_slide_body'] ) ) {
-        update_post_meta( $post_id, '_home_slide_body', sanitize_textarea_field( $_POST['home_slide_body'] ) );
-    }
-
-    // Save button text — only if both text and URL are provided
-    $button_text = isset( $_POST['home_slide_button_text'] ) ? sanitize_text_field( $_POST['home_slide_button_text'] ) : '';
-    $button_url = isset( $_POST['home_slide_button_url'] ) ? esc_url_raw( $_POST['home_slide_button_url'] ) : '';
-
-    if ( ! empty( $button_text ) && ! empty( $button_url ) ) {
-        update_post_meta( $post_id, '_home_slide_button_text', $button_text );
-        update_post_meta( $post_id, '_home_slide_button_url', $button_url );
-    } else {
-        // If either is empty, delete both
-        delete_post_meta( $post_id, '_home_slide_button_text' );
-        delete_post_meta( $post_id, '_home_slide_button_url' );
-    }
-}
-add_action( 'save_post_home_slide', 'theme_save_home_slide_meta' );
-
-
-// Add custom columns to Home Slides list table
-function theme_add_home_slides_columns( $columns ) {
-    $new_columns = array();
-    
-    // Insert image column after checkbox
-    foreach ( $columns as $key => $value ) {
-        $new_columns[ $key ] = $value;
-        if ( $key === 'cb' ) {
-            $new_columns['featured_image'] = 'Image';
-        }
-    }
-    
-    return $new_columns;
-}
-add_filter( 'manage_home_slide_posts_columns', 'theme_add_home_slides_columns' );
-
-
-// Display featured image in custom column
-function theme_display_home_slides_featured_image( $column, $post_id ) {
-    if ( $column === 'featured_image' ) {
-        if ( has_post_thumbnail( $post_id ) ) {
-            echo get_the_post_thumbnail( $post_id, array( 60, 60 ), array( 'style' => 'border-radius: 4px;' ) );
-        } else {
-            echo '<span style="color: #999;">No image</span>';
-        }
-    }
-}
-add_action( 'manage_home_slide_posts_custom_column', 'theme_display_home_slides_featured_image', 10, 2 );
-
-
-// Make featured image column sortable by title (or whatever makes sense)
-function theme_home_slides_sortable_columns( $columns ) {
-    $columns['featured_image'] = 'title';
-    return $columns;
-}
-add_filter( 'manage_edit-home_slide_sortable_columns', 'theme_home_slides_sortable_columns' );
-
-
-// Admin CSS for responsive Home Slides table
-function theme_home_slides_admin_styles() {
-    $screen = get_current_screen();
-    
-    if ( ! $screen || 'edit-home_slide' !== $screen->id ) {
-        return;
-    }
-    
-    ?>
-    <style type="text/css">
-        /* Desktop: Set column widths */
-        @media screen and (min-width: 783px) {
-            .wp-list-table.posts #featured_image {
-                width: 10%;
-            }
-            
-            .wp-list-table.posts .column-title {
-                width: 60%;
-            }
-            
-            .wp-list-table.posts .column-date {
-                width: 30%;
-            }
-        }
-        
-        /* Mobile: Responsive adjustments */
-        @media screen and (max-width: 782px) {
-            /* Hide date column on mobile */
-            .wp-list-table.posts .column-date,
-            .wp-list-table.posts th#date {
-                display: none;
-            }
-            
-            /* Make title take full width */
-            .wp-list-table.posts th.column-title,
-            .wp-list-table.posts td.column-title {
-                width: 100% !important;
-                display: block !important;
-                padding: 10px !important;
-                border: none !important;
-            }
-            
-            /* Make image column full width */
-            .wp-list-table.posts th#featured_image,
-            .wp-list-table.posts td.featured_image {
-                width: 100% !important;
-                display: block !important;
-                padding: 10px !important;
-                border: none !important;
-                text-align: left;
-            }
-            
-            /* Stack rows */
-            .wp-list-table.posts tbody tr {
-                display: block !important;
-                border: 1px solid #ddd !important;
-                margin-bottom: 15px !important;
-                border-radius: 4px !important;
-            }
-            
-            /* Checkbox column */
-            .wp-list-table.posts th.check-column,
-            .wp-list-table.posts td.check-column {
-                display: block !important;
-                width: 100% !important;
-                padding: 10px !important;
-                border: none !important;
-            }
-            
-            /* Header row styling */
-            .wp-list-table.posts thead tr {
-                display: block !important;
-            }
-            
-            .wp-list-table.posts thead th {
-                display: block !important;
-                width: 100% !important;
-                border: none !important;
-                padding: 10px !important;
-                margin-bottom: 0 !important;
-            }
-            
-            /* Featured image styling */
-            .wp-list-table.posts td.featured_image img {
-                display: block;
-                max-width: 80px;
-                height: auto;
-            }
-        }
-    </style>
-    <?php
-}
-add_action( 'admin_head', 'theme_home_slides_admin_styles' );
-
-
-// ------------------------------------------------------------
-// 8. CUSTOM POST TYPE — TEAM MEMBER
-// ------------------------------------------------------------
-
-function theme_register_team_member_cpt() {
-    $labels = array(
-        'name'               => 'Team Members',
-        'singular_name'      => 'Team Member',
-        'menu_name'          => 'Team Members',
-        'all_items'          => 'All Team Members',
-        'add_new'            => 'Add New Member',
-        'add_new_item'       => 'Add New Team Member',
-        'edit_item'          => 'Edit Team Member',
-        'view_item'          => 'View Team Member',
-        'search_items'       => 'Search Team Members',
-    );
-
-    $args = array(
-        'labels'            => $labels,
-        'public'            => true,
-        'show_ui'           => true,
-        'show_in_menu'      => true,
-        'menu_position'     => 6,
-        'menu_icon'         => 'dashicons-groups',
-        'supports'          => array( 'title', 'thumbnail', 'editor' ),
-        'has_archive'       => true,
-        'rewrite'           => array( 'slug' => 'team-member' ),
-        'show_in_rest'      => false,
-    );
-
-    register_post_type( 'team_member', $args );
-}
-add_action( 'init', 'theme_register_team_member_cpt' );
-
-
-// Register Team Locations Taxonomy
-function theme_register_team_locations_taxonomy() {
-    $labels = array(
-        'name'               => 'Team Locations',
-        'singular_name'      => 'Team Location',
-        'menu_name'          => 'Locations',
-        'all_items'          => 'All Locations',
-        'add_new_item'       => 'Add New Location',
-        'edit_item'          => 'Edit Location',
-        'search_items'       => 'Search Locations',
-    );
-
-    $args = array(
-        'labels'            => $labels,
-        'hierarchical'      => false,
-        'public'            => true,
-        'show_ui'           => true,
-        'show_in_menu'      => true,
-        'show_in_rest'      => false,
-        'rewrite'           => array( 'slug' => 'team-location' ),
-    );
-
-    register_taxonomy( 'team_location', 'team_member', $args );
-}
-add_action( 'init', 'theme_register_team_locations_taxonomy' );
-
-
-// Remove team location taxonomy meta box from editor
-// Location is now a dropdown field in the custom meta box, not a taxonomy assignment
-function ng_andersen_remove_team_location_meta_box() {
-    remove_meta_box( 'team_locationdiv', 'team_member', 'side' );
-}
-add_action( 'add_meta_boxes', 'ng_andersen_remove_team_location_meta_box' );
-
-
-// Team Member custom meta boxes
-function ng_andersen_add_team_member_meta_boxes() {
-    add_meta_box(
-        'team_member_details',
-        'Team Member Details',
-        'ng_andersen_render_team_member_meta_box',
-        'team_member',
-        'normal',
-        'high'
-    );
-}
-add_action( 'add_meta_boxes', 'ng_andersen_add_team_member_meta_boxes' );
-
-
-// Render team member meta box
-function ng_andersen_render_team_member_meta_box( $post ) {
-    wp_nonce_field( 'team_member_nonce', 'team_member_nonce' );
-
-    $position = get_post_meta( $post->ID, '_team_member_position', true );
-    $location = get_post_meta( $post->ID, '_team_member_location', true );
-    $email = get_post_meta( $post->ID, '_team_member_email', true );
-    ?>
-
-    <div style="margin-bottom: 20px;">
-        <label for="team_member_position" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Position
-        </label>
-        <input
-            type="text"
-            id="team_member_position"
-            name="team_member_position"
-            value="<?php echo esc_attr( $position ); ?>"
-            placeholder="e.g., Managing Director, Senior Manager"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
-        >
-        <p style="font-size: 12px; color: #666; margin-top: 5px;">
-            The job title or position of this team member.
-        </p>
-    </div>
-
-    <div style="margin-bottom: 20px;">
-        <label for="team_member_location" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Location
-        </label>
-        <select
-            id="team_member_location"
-            name="team_member_location"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
-        >
-            <option value="">Select a Location</option>
-            <?php
-            // Get all team locations
-            $locations = get_terms( array(
-                'taxonomy'   => 'team_location',
-                'hide_empty' => false,
-            ) );
-
-            if ( $locations && ! is_wp_error( $locations ) ) {
-                foreach ( $locations as $loc ) {
-                    ?>
-                    <option value="<?php echo esc_attr( $loc->term_id ); ?>" <?php selected( $location, $loc->term_id ); ?>>
-                        <?php echo esc_html( $loc->name ); ?>
-                    </option>
-                    <?php
-                }
-            }
-            ?>
-        </select>
-        <p style="font-size: 12px; color: #666; margin-top: 5px;">
-            Select the primary location for this team member.
-        </p>
-    </div>
-
-    <div style="margin-bottom: 20px;">
-        <label for="team_member_email" style="display: block; margin-bottom: 8px; font-weight: 600;">
-            Email <span style="color: red;">*</span>
-        </label>
-        <input
-            type="email"
-            id="team_member_email"
-            name="team_member_email"
-            value="<?php echo esc_attr( $email ); ?>"
-            placeholder="name@example.com"
-            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
-            required
-        >
-        <p style="font-size: 12px; color: #666; margin-top: 5px;">
-            Contact email for this team member. Must be a valid email address.
-        </p>
-    </div>
-
-    <p style="font-size: 12px; color: #666; margin-top: 16px;">
-        <strong>Note:</strong> Use the Featured Image panel on the right to upload the team member's photo. The page content (editor above) is used as the biography.
-    </p>
-    <?php
-}
-
-
-// Save team member meta
-function ng_andersen_save_team_member_meta( $post_id ) {
-    if ( ! isset( $_POST['team_member_nonce'] ) || ! wp_verify_nonce( $_POST['team_member_nonce'], 'team_member_nonce' ) ) {
-        return;
-    }
-
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-        return;
-    }
-
-    if ( ! current_user_can( 'edit_post', $post_id ) ) {
-        return;
-    }
-
-    // Save position
-    if ( isset( $_POST['team_member_position'] ) ) {
-        update_post_meta( $post_id, '_team_member_position', sanitize_text_field( $_POST['team_member_position'] ) );
-    }
-
-    // Save location (taxonomy term ID)
-    if ( isset( $_POST['team_member_location'] ) && ! empty( $_POST['team_member_location'] ) ) {
-        $location_id = absint( $_POST['team_member_location'] );
-        update_post_meta( $post_id, '_team_member_location', $location_id );
-    } else {
-        delete_post_meta( $post_id, '_team_member_location' );
-    }
-
-    // Save and validate email
-    if ( isset( $_POST['team_member_email'] ) ) {
-        $email = sanitize_email( $_POST['team_member_email'] );
-        if ( is_email( $email ) ) {
-            update_post_meta( $post_id, '_team_member_email', $email );
-        }
-    }
-}
-add_action( 'save_post_team_member', 'ng_andersen_save_team_member_meta' );
-
-
-// AJAX handler for team member search
-function ng_andersen_ajax_search_team_members() {
-    check_ajax_referer( 'team_search_nonce', 'nonce' );
-
-    $name = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
-    $position = isset( $_POST['position'] ) ? sanitize_text_field( $_POST['position'] ) : '';
-    $location = isset( $_POST['location'] ) ? sanitize_text_field( $_POST['location'] ) : '';
-    $paged = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
-
-    $args = array(
-        'post_type'      => 'team_member',
-        'posts_per_page' => 10,
-        'paged'          => $paged,
-        'orderby'        => 'title',
-        'order'          => 'ASC',
-    );
-
-    // Search by name (post title)
-    if ( ! empty( $name ) ) {
-        $args['s'] = $name;
-    }
-
-    // Filter by position (custom field)
-    if ( ! empty( $position ) ) {
-        if ( ! isset( $args['meta_query'] ) ) {
-            $args['meta_query'] = array();
-        }
-        $args['meta_query'][] = array(
-            'key'     => '_team_member_position',
-            'value'   => $position,
-            'compare' => 'LIKE',
-        );
-    }
-
-    // Filter by location (custom field — term ID)
-    if ( ! empty( $location ) ) {
-        if ( ! isset( $args['meta_query'] ) ) {
-            $args['meta_query'] = array();
-        }
-        $args['meta_query'][] = array(
-            'key'     => '_team_member_location',
-            'value'   => absint( $location ),
-            'compare' => '=',
-        );
-    }
-
-    // If we have multiple meta queries, set the relation to AND
-    if ( isset( $args['meta_query'] ) && count( $args['meta_query'] ) > 1 ) {
-        $args['meta_query']['relation'] = 'AND';
-    }
-
-    $query = new WP_Query( $args );
-
-    ob_start();
-
-    if ( $query->have_posts() ) {
-        ?>
-        <div class="people-list">
-            <?php
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                $position = get_post_meta( get_the_ID(), '_team_member_position', true );
-                $location_id = get_post_meta( get_the_ID(), '_team_member_location', true );
-                $location_text = '';
-
-                if ( $location_id ) {
-                    $location_term = get_term( $location_id, 'team_location' );
-                    if ( $location_term && ! is_wp_error( $location_term ) ) {
-                        $location_text = $location_term->name;
-                    }
-                }
-                ?>
-                <a class="item" href="<?php echo esc_url( get_permalink() ); ?>">
-                    <span class="item-img">
-                        <span><?php the_post_thumbnail( 'medium' ); ?></span>
-                    </span>
-                    <span class="item-name"><?php the_title(); ?></span>
-                    <span class="item-location"><?php echo esc_html( $location_text ); ?></span>
-                    <span class="item-position"><?php echo esc_html( $position ); ?></span>
-                </a>
-                <?php
-            }
-            ?>
-        </div>
-
-        <?php
-        // Pagination
-        $total_pages = $query->max_num_pages;
-        if ( $total_pages > 1 ) {
-            ?>
-            <nav aria-label="Pagination">
-                <ul class="pagination text-center">
-                    <?php
-                    // Previous button — only show if not on first page
-                    if ( $paged > 1 ) {
-                        ?>
-                        <li class="pagination-previous">
-                            <a href="#" class="page-link" data-page="<?php echo $paged - 1; ?>">Previous</a>
-                        </li>
-                        <?php
-                    } else {
-                        ?>
-                        <li class="pagination-previous disabled"><span>Previous</span></li>
-                        <?php
-                    }
-
-                    // Page numbers — show first 4, ellipsis, last 2
-                    for ( $i = 1; $i <= $total_pages; $i++ ) {
-                        if ( $i <= 4 || $i > $total_pages - 2 ) {
-                            if ( $i == $paged ) {
-                                ?>
-                                <li class="current"><span class="show-for-sr">You're on page</span> <?php echo $i; ?></li>
-                                <?php
-                            } else {
-                                ?>
-                                <li><a href="#" class="page-link" data-page="<?php echo $i; ?>" aria-label="Page <?php echo $i; ?>"><?php echo $i; ?></a></li>
-                                <?php
-                            }
-                        } elseif ( $i == 5 && $total_pages > 7 ) {
-                            ?>
-                            <li class="ellipsis"><span></span></li>
-                            <?php
-                        }
-                    }
-
-                    // Next button — only show if not on last page
-                    if ( $paged < $total_pages ) {
-                        ?>
-                        <li class="pagination-next">
-                            <a href="#" class="page-link" data-page="<?php echo $paged + 1; ?>" aria-label="Next page">Next</a>
-                        </li>
-                        <?php
-                    } else {
-                        ?>
-                        <li class="pagination-next disabled"><span>Next</span></li>
-                        <?php
-                    }
-                    ?>
-                </ul>
-            </nav>
-            <?php
-        }
-    } else {
-        ?>
-        <div class="people-list">
-            <div class="team-no-results">
-                <p>No team members match your search.</p>
-            </div>
-        </div>
-        <?php
-    }
-
-    wp_reset_postdata();
-
-    $output = ob_get_clean();
-    wp_send_json_success( array( 'html' => $output ) );
-}
-add_action( 'wp_ajax_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
-add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
-
-
-
-
-
-
-
-
-// ------------------------------------------------------------
+// ============================================================
 // 6. PAGE-SPECIFIC ASSETS — LOCATIONS MAP
-// ------------------------------------------------------------
+// ============================================================
 
 function theme_enqueue_locations_assets() {
 
@@ -1022,3 +363,667 @@ function theme_enqueue_locations_assets() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'theme_enqueue_locations_assets' );
+
+
+// ============================================================
+// 7. CUSTOM POST TYPE — HOME SLIDES
+// ============================================================
+
+function theme_register_home_slides_cpt() {
+    $labels = array(
+        'name'               => 'Home Slides',
+        'singular_name'      => 'Home Slide',
+        'menu_name'          => 'Home Slides',
+        'all_items'          => 'All Slides',
+        'add_new'            => 'Add New Slide',
+        'add_new_item'       => 'Add New Home Slide',
+        'edit_item'          => 'Edit Home Slide',
+        'view_item'          => 'View Home Slide',
+        'search_items'       => 'Search Home Slides',
+    );
+
+    $args = array(
+        'labels'            => $labels,
+        'public'            => false,
+        'show_ui'           => true,
+        'show_in_menu'      => true,
+        'menu_position'     => 5,
+        'menu_icon'         => 'dashicons-slides',
+        'supports'          => array( 'title', 'thumbnail', 'page-attributes' ),
+        'has_archive'       => false,
+        'rewrite'           => false,
+        'show_in_rest'      => true,
+    );
+
+    register_post_type( 'home_slide', $args );
+}
+add_action( 'init', 'theme_register_home_slides_cpt' );
+
+
+// Home Slides custom meta boxes
+function theme_add_home_slide_meta_boxes() {
+    add_meta_box(
+        'home_slide_content',
+        'Slide Content',
+        'theme_render_home_slide_content_meta_box',
+        'home_slide',
+        'normal',
+        'high'
+    );
+
+    add_meta_box(
+        'home_slide_cta',
+        'Call to Action (Optional)',
+        'theme_render_home_slide_cta_meta_box',
+        'home_slide',
+        'normal',
+        'default'
+    );
+}
+add_action( 'add_meta_boxes', 'theme_add_home_slide_meta_boxes' );
+
+
+// Render content meta box — body text only
+function theme_render_home_slide_content_meta_box( $post ) {
+    wp_nonce_field( 'home_slide_nonce', 'home_slide_nonce' );
+
+    $body = get_post_meta( $post->ID, '_home_slide_body', true );
+    ?>
+
+    <div>
+        <label for="home_slide_body" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Body Text
+        </label>
+        <textarea
+            id="home_slide_body"
+            name="home_slide_body"
+            rows="6"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"
+        ><?php echo esc_textarea( $body ); ?></textarea>
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            The subtitle or descriptive text for this slide. Set the slide image using the Featured Image panel on the right.
+        </p>
+    </div>
+    <?php
+}
+
+
+// Render CTA meta box
+function theme_render_home_slide_cta_meta_box( $post ) {
+    $button_text = get_post_meta( $post->ID, '_home_slide_button_text', true );
+    $button_url = get_post_meta( $post->ID, '_home_slide_button_url', true );
+    ?>
+
+    <p style="font-size: 12px; color: #666; margin-bottom: 16px;">
+        Both button text and URL must be provided to display the button. Leave both empty to hide the button.
+    </p>
+
+    <div style="margin-bottom: 16px;">
+        <label for="home_slide_button_text" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Button Text
+        </label>
+        <input
+            type="text"
+            id="home_slide_button_text"
+            name="home_slide_button_text"
+            value="<?php echo esc_attr( $button_text ); ?>"
+            placeholder="e.g., Learn More"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+        >
+    </div>
+
+    <div>
+        <label for="home_slide_button_url" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Button URL
+        </label>
+        <input
+            type="url"
+            id="home_slide_button_url"
+            name="home_slide_button_url"
+            value="<?php echo esc_url( $button_url ); ?>"
+            placeholder="https://example.com"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+        >
+    </div>
+    <?php
+}
+
+
+// Save home slide meta
+function theme_save_home_slide_meta( $post_id ) {
+    if ( ! isset( $_POST['home_slide_nonce'] ) || ! wp_verify_nonce( $_POST['home_slide_nonce'], 'home_slide_nonce' ) ) {
+        return;
+    }
+
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    // Save body
+    if ( isset( $_POST['home_slide_body'] ) ) {
+        update_post_meta( $post_id, '_home_slide_body', sanitize_textarea_field( $_POST['home_slide_body'] ) );
+    }
+
+    // Save button text — only if both text and URL are provided
+    $button_text = isset( $_POST['home_slide_button_text'] ) ? sanitize_text_field( $_POST['home_slide_button_text'] ) : '';
+    $button_url = isset( $_POST['home_slide_button_url'] ) ? esc_url_raw( $_POST['home_slide_button_url'] ) : '';
+
+    if ( ! empty( $button_text ) && ! empty( $button_url ) ) {
+        update_post_meta( $post_id, '_home_slide_button_text', $button_text );
+        update_post_meta( $post_id, '_home_slide_button_url', $button_url );
+    } else {
+        // If either is empty, delete both
+        delete_post_meta( $post_id, '_home_slide_button_text' );
+        delete_post_meta( $post_id, '_home_slide_button_url' );
+    }
+}
+add_action( 'save_post_home_slide', 'theme_save_home_slide_meta' );
+
+
+// Add custom columns to Home Slides list table
+function theme_add_home_slides_columns( $columns ) {
+    $new_columns = array();
+
+    // Insert image column after checkbox
+    foreach ( $columns as $key => $value ) {
+        $new_columns[ $key ] = $value;
+        if ( $key === 'cb' ) {
+            $new_columns['featured_image'] = 'Image';
+        }
+    }
+
+    return $new_columns;
+}
+add_filter( 'manage_home_slide_posts_columns', 'theme_add_home_slides_columns' );
+
+
+// Display featured image in custom column
+function theme_display_home_slides_featured_image( $column, $post_id ) {
+    if ( $column === 'featured_image' ) {
+        if ( has_post_thumbnail( $post_id ) ) {
+            echo get_the_post_thumbnail( $post_id, array( 60, 60 ), array( 'style' => 'border-radius: 4px;' ) );
+        } else {
+            echo '<span style="color: #999;">No image</span>';
+        }
+    }
+}
+add_action( 'manage_home_slide_posts_custom_column', 'theme_display_home_slides_featured_image', 10, 2 );
+
+
+// Make featured image column sortable by title (or whatever makes sense)
+function theme_home_slides_sortable_columns( $columns ) {
+    $columns['featured_image'] = 'title';
+    return $columns;
+}
+add_filter( 'manage_edit-home_slide_sortable_columns', 'theme_home_slides_sortable_columns' );
+
+
+// Admin CSS for responsive Home Slides table
+function theme_home_slides_admin_styles() {
+    $screen = get_current_screen();
+
+    if ( ! $screen || 'edit-home_slide' !== $screen->id ) {
+        return;
+    }
+
+    ?>
+    <style type="text/css">
+        /* Desktop: Set column widths */
+        @media screen and (min-width: 783px) {
+            .wp-list-table.posts #featured_image {
+                width: 10%;
+            }
+
+            .wp-list-table.posts .column-title {
+                width: 60%;
+            }
+
+            .wp-list-table.posts .column-date {
+                width: 30%;
+            }
+        }
+
+        /* Mobile: Responsive adjustments */
+        @media screen and (max-width: 782px) {
+            /* Hide date column on mobile */
+            .wp-list-table.posts .column-date,
+            .wp-list-table.posts th#date {
+                display: none;
+            }
+
+            /* Make title take full width */
+            .wp-list-table.posts th.column-title,
+            .wp-list-table.posts td.column-title {
+                width: 100% !important;
+                display: block !important;
+                padding: 10px !important;
+                border: none !important;
+            }
+
+            /* Make image column full width */
+            .wp-list-table.posts th#featured_image,
+            .wp-list-table.posts td.featured_image {
+                width: 100% !important;
+                display: block !important;
+                padding: 10px !important;
+                border: none !important;
+                text-align: left;
+            }
+
+            /* Stack rows */
+            .wp-list-table.posts tbody tr {
+                display: block !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 15px !important;
+                border-radius: 4px !important;
+            }
+
+            /* Checkbox column */
+            .wp-list-table.posts th.check-column,
+            .wp-list-table.posts td.check-column {
+                display: block !important;
+                width: 100% !important;
+                padding: 10px !important;
+                border: none !important;
+            }
+
+            /* Header row styling */
+            .wp-list-table.posts thead tr {
+                display: block !important;
+            }
+
+            .wp-list-table.posts thead th {
+                display: block !important;
+                width: 100% !important;
+                border: none !important;
+                padding: 10px !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* Featured image styling */
+            .wp-list-table.posts td.featured_image img {
+                display: block;
+                max-width: 80px;
+                height: auto;
+            }
+        }
+    </style>
+    <?php
+}
+add_action( 'admin_head', 'theme_home_slides_admin_styles' );
+
+
+// ============================================================
+// 8. CUSTOM POST TYPE — TEAM MEMBER
+// ============================================================
+
+function theme_register_team_member_cpt() {
+    $labels = array(
+        'name'               => 'Team Members',
+        'singular_name'      => 'Team Member',
+        'menu_name'          => 'Team Members',
+        'all_items'          => 'All Team Members',
+        'add_new'            => 'Add New Member',
+        'add_new_item'       => 'Add New Team Member',
+        'edit_item'          => 'Edit Team Member',
+        'view_item'          => 'View Team Member',
+        'search_items'       => 'Search Team Members',
+    );
+
+    $args = array(
+        'labels'            => $labels,
+        'public'            => true,
+        'show_ui'           => true,
+        'show_in_menu'      => true,
+        'menu_position'     => 6,
+        'menu_icon'         => 'dashicons-groups',
+        'supports'          => array( 'title', 'thumbnail', 'editor' ),
+        'has_archive'       => true,
+        'rewrite'           => array( 'slug' => 'team-member' ),
+        'show_in_rest'      => true,
+    );
+
+    register_post_type( 'team_member', $args );
+}
+add_action( 'init', 'theme_register_team_member_cpt' );
+
+
+// Register Team Locations Taxonomy
+function theme_register_team_locations_taxonomy() {
+    $labels = array(
+        'name'               => 'Team Locations',
+        'singular_name'      => 'Team Location',
+        'menu_name'          => 'Locations',
+        'all_items'          => 'All Locations',
+        'add_new_item'       => 'Add New Location',
+        'edit_item'          => 'Edit Location',
+        'search_items'       => 'Search Locations',
+    );
+
+    $args = array(
+        'labels'            => $labels,
+        'hierarchical'      => false,
+        'public'            => true,
+        'show_ui'           => true,
+        'show_in_menu'      => true,
+        'show_in_rest'      => false,
+        'rewrite'           => array( 'slug' => 'team-location' ),
+    );
+
+    register_taxonomy( 'team_location', 'team_member', $args );
+}
+add_action( 'init', 'theme_register_team_locations_taxonomy' );
+
+
+// Remove team location taxonomy meta box from editor
+// Location is now a dropdown field in the custom meta box, not a taxonomy assignment
+function ng_andersen_remove_team_location_meta_box() {
+    remove_meta_box( 'team_locationdiv', 'team_member', 'side' );
+}
+add_action( 'add_meta_boxes', 'ng_andersen_remove_team_location_meta_box' );
+
+
+// Team Member custom meta boxes
+function ng_andersen_add_team_member_meta_boxes() {
+    add_meta_box(
+        'team_member_details',
+        'Team Member Details',
+        'ng_andersen_render_team_member_meta_box',
+        'team_member',
+        'normal',
+        'high'
+    );
+}
+add_action( 'add_meta_boxes', 'ng_andersen_add_team_member_meta_boxes' );
+
+
+// Render team member meta box
+function ng_andersen_render_team_member_meta_box( $post ) {
+    wp_nonce_field( 'team_member_nonce', 'team_member_nonce' );
+
+    $position = get_post_meta( $post->ID, '_team_member_position', true );
+    $location = get_post_meta( $post->ID, '_team_member_location', true );
+    $email = get_post_meta( $post->ID, '_team_member_email', true );
+    ?>
+
+    <div style="margin-bottom: 20px;">
+        <label for="team_member_position" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Position
+        </label>
+        <input
+            type="text"
+            id="team_member_position"
+            name="team_member_position"
+            value="<?php echo esc_attr( $position ); ?>"
+            placeholder="e.g., Managing Director, Senior Manager"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+        >
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            The job title or position of this team member.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="team_member_location" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Location
+        </label>
+        <select
+            id="team_member_location"
+            name="team_member_location"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+        >
+            <option value="">Select a Location</option>
+            <?php
+            // Get all team locations
+            $locations = get_terms( array(
+                'taxonomy'   => 'team_location',
+                'hide_empty' => false,
+            ) );
+
+            if ( $locations && ! is_wp_error( $locations ) ) {
+                foreach ( $locations as $loc ) {
+                    ?>
+                    <option value="<?php echo absint( $loc->term_id ); ?>" <?php selected( $location, $loc->term_id ); ?>>
+                        <?php echo esc_html( $loc->name ); ?>
+                    </option>
+                    <?php
+                }
+            }
+            ?>
+        </select>
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            Select the primary location for this team member.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="team_member_email" style="display: block; margin-bottom: 8px; font-weight: 600;">
+            Email <span style="color: red;">*</span>
+        </label>
+        <input
+            type="email"
+            id="team_member_email"
+            name="team_member_email"
+            value="<?php echo esc_attr( $email ); ?>"
+            placeholder="name@example.com"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+            required
+        >
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            Contact email for this team member. Must be a valid email address.
+        </p>
+    </div>
+
+    <p style="font-size: 12px; color: #666; margin-top: 16px;">
+        <strong>Note:</strong> Use the Featured Image panel on the right to upload the team member's photo. The page content (editor above) is used as the biography.
+    </p>
+    <?php
+}
+
+
+// Save team member meta
+function ng_andersen_save_team_member_meta( $post_id ) {
+    if ( ! isset( $_POST['team_member_nonce'] ) || ! wp_verify_nonce( $_POST['team_member_nonce'], 'team_member_nonce' ) ) {
+        return;
+    }
+
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    // Save position
+    if ( isset( $_POST['team_member_position'] ) ) {
+        update_post_meta( $post_id, '_team_member_position', sanitize_text_field( $_POST['team_member_position'] ) );
+    }
+
+    // Save location (taxonomy term ID)
+    if ( isset( $_POST['team_member_location'] ) && ! empty( $_POST['team_member_location'] ) ) {
+        $location_id = absint( $_POST['team_member_location'] );
+        update_post_meta( $post_id, '_team_member_location', $location_id );
+    } else {
+        delete_post_meta( $post_id, '_team_member_location' );
+    }
+
+    // Save and validate email
+    if ( isset( $_POST['team_member_email'] ) ) {
+        $email = sanitize_email( $_POST['team_member_email'] );
+        if ( is_email( $email ) ) {
+            update_post_meta( $post_id, '_team_member_email', $email );
+        }
+    }
+}
+add_action( 'save_post_team_member', 'ng_andersen_save_team_member_meta' );
+
+
+// ============================================================
+// 9. AJAX: TEAM MEMBER SEARCH
+// ============================================================
+
+function ng_andersen_ajax_search_team_members() {
+    check_ajax_referer( 'team_search_nonce', 'nonce' );
+
+    $name = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
+    $position = isset( $_POST['position'] ) ? sanitize_text_field( $_POST['position'] ) : '';
+    // SECURITY FIX: Cast location to int immediately
+    $location = isset( $_POST['location'] ) ? absint( $_POST['location'] ) : 0;
+    $paged = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
+
+    $args = array(
+        'post_type'      => 'team_member',
+        'posts_per_page' => 10,
+        'paged'          => $paged,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    );
+
+    // Search by name (post title)
+    if ( ! empty( $name ) ) {
+        $args['s'] = $name;
+    }
+
+    // Filter by position (custom field)
+    if ( ! empty( $position ) ) {
+        if ( ! isset( $args['meta_query'] ) ) {
+            $args['meta_query'] = array();
+        }
+        $args['meta_query'][] = array(
+            'key'     => '_team_member_position',
+            'value'   => $position,
+            'compare' => 'LIKE',
+        );
+    }
+
+    // Filter by location (custom field — term ID)
+    if ( ! empty( $location ) ) {
+        if ( ! isset( $args['meta_query'] ) ) {
+            $args['meta_query'] = array();
+        }
+        $args['meta_query'][] = array(
+            'key'     => '_team_member_location',
+            'value'   => $location,
+            'compare' => '=',
+            'type'    => 'NUMERIC',
+        );
+    }
+
+    // If we have multiple meta queries, set the relation to AND
+    if ( isset( $args['meta_query'] ) && count( $args['meta_query'] ) > 1 ) {
+        $args['meta_query']['relation'] = 'AND';
+    }
+
+    $query = new WP_Query( $args );
+
+    ob_start();
+
+    if ( $query->have_posts() ) {
+        ?>
+        <div class="people-list">
+            <?php
+            while ( $query->have_posts() ) {
+                $query->the_post();
+                $position = get_post_meta( get_the_ID(), '_team_member_position', true );
+                $location_id = get_post_meta( get_the_ID(), '_team_member_location', true );
+                $location_text = '';
+
+                if ( $location_id ) {
+                    $location_term = get_term( $location_id, 'team_location' );
+                    if ( $location_term && ! is_wp_error( $location_term ) ) {
+                        $location_text = $location_term->name;
+                    }
+                }
+                ?>
+                <a class="item" href="<?php echo esc_url( get_permalink() ); ?>">
+                    <span class="item-img">
+                        <span><?php the_post_thumbnail( 'medium' ); ?></span>
+                    </span>
+                    <span class="item-name"><?php the_title(); ?></span>
+                    <span class="item-location"><?php echo esc_html( $location_text ); ?></span>
+                    <span class="item-position"><?php echo esc_html( $position ); ?></span>
+                </a>
+                <?php
+            }
+            ?>
+        </div>
+
+        <?php
+        // Pagination
+        $total_pages = $query->max_num_pages;
+        if ( $total_pages > 1 ) {
+            ?>
+            <nav aria-label="Pagination">
+                <ul class="pagination text-center">
+                    <?php
+                    // Previous button — only show if not on first page
+                    if ( $paged > 1 ) {
+                        ?>
+                        <li class="pagination-previous">
+                            <a href="#" class="page-link" data-page="<?php echo absint( $paged - 1 ); ?>">Previous</a>
+                        </li>
+                        <?php
+                    } else {
+                        ?>
+                        <li class="pagination-previous disabled"><span>Previous</span></li>
+                        <?php
+                    }
+
+                    // Page numbers — show first 4, ellipsis, last 2
+                    for ( $i = 1; $i <= $total_pages; $i++ ) {
+                        if ( $i <= 4 || $i > $total_pages - 2 ) {
+                            if ( $i == $paged ) {
+                                ?>
+                                <li class="current"><span class="show-for-sr">You're on page</span> <?php echo absint( $i ); ?></li>
+                                <?php
+                            } else {
+                                ?>
+                                <li><a href="#" class="page-link" data-page="<?php echo absint( $i ); ?>" aria-label="Page <?php echo absint( $i ); ?>"><?php echo absint( $i ); ?></a></li>
+                                <?php
+                            }
+                        } elseif ( $i == 5 && $total_pages > 7 ) {
+                            ?>
+                            <li class="ellipsis"><span></span></li>
+                            <?php
+                        }
+                    }
+
+                    // Next button — only show if not on last page
+                    if ( $paged < $total_pages ) {
+                        ?>
+                        <li class="pagination-next">
+                            <a href="#" class="page-link" data-page="<?php echo absint( $paged + 1 ); ?>" aria-label="Next page">Next</a>
+                        </li>
+                        <?php
+                    } else {
+                        ?>
+                        <li class="pagination-next disabled"><span>Next</span></li>
+                        <?php
+                    }
+                    ?>
+                </ul>
+            </nav>
+            <?php
+        }
+    } else {
+        ?>
+        <div class="people-list">
+            <div class="team-no-results">
+                <p>No team members match your search.</p>
+            </div>
+        </div>
+        <?php
+    }
+
+    wp_reset_postdata();
+
+    $output = ob_get_clean();
+    wp_send_json_success( array( 'html' => $output ) );
+}
+add_action( 'wp_ajax_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
+add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
