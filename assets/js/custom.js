@@ -1,15 +1,16 @@
 /**
- * Team Member Search
+ * Custom Theme JavaScript
  *
- * Handles AJAX search and filtering for team members with:
- * - 250ms debounce on name and position searches
- * - Immediate filter on location dropdown
- * - Dynamic pagination
- * - Reset functionality
+ * Handles:
+ * - Team Member Search with filters and pagination
  */
 
 (function($) {
     'use strict';
+
+    // ============================================================
+    // TEAM MEMBER SEARCH
+    // ============================================================
 
     const TeamSearch = {
         debounceTimer: null,

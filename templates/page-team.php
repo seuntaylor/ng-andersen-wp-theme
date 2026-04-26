@@ -39,7 +39,9 @@ get_header();
         <div class="container">
             <div class="text">
                 <h1>Our People</h1>
-                <p><?php echo esc_html( get_the_archive_title() ); ?></p>
+                <div class="page-subtitle">
+                    <?php the_content(); ?>
+                </div>
             </div>
         </div>
     </div>

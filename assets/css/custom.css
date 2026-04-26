@@ -1,5 +1,27 @@
+/*
+ * Custom WordPress Theme Overrides
+ * ============================================
+ *
+ * This file contains all WordPress-specific CSS fixes that override
+ * or extend styles from app.css (compiled SCSS output).
+ *
+ * IMPORTANT: This file should NEVER be automatically overwritten.
+ * If app.css is recompiled from SCSS, custom.css is preserved.
+ *
+ * Sections:
+ * 1. Dropdown Navigation Fix
+ */
+
+/* ============================================================
+   1. DROPDOWN NAVIGATION FIX
+   ============================================================
+   Issue: WordPress wp_nav_menu() generates .sub-menu instead of .lvl-2
+   Solution: Target .sub-menu with same styles as .lvl-2 from app.css
+*/
+
 .main-nav ul.lvl-1 .sub-menu a {
     color: #464646;
+    list-style: none;
     padding: 10px 12px !important;
 }
 
@@ -8,16 +30,13 @@
     color: #464646;
 }
 
-/*
- * Dropdown submenu container
- * Maps WordPress .sub-menu to match the static template's .lvl-2 styles
- */
 .main-nav ul.sub-menu {
     text-align: left;
+    list-style: none;
     width: 18.125rem;
     background: #f9f9f9 !important;
     border: none !important;
-    -webkit-box-shadow: .125rem .125rem .125rem 0 #a3aaae;
     box-shadow: .125rem .125rem .125rem 0 #a3aaae;
     padding-inline-start: 0;
+    
 }
