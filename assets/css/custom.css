@@ -40,3 +40,32 @@
     padding-inline-start: 0;
     
 }
+
+/* ============================================================
+   2. TEAM MEMBERS PAGE EFFECTS
+   ============================================================
+*/
+
+.widget--team .item .image {
+    border-bottom: 5px solid #c41e3a;
+    display: block;
+}
+
+.widget--team .item .image img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.widget--team .item .text {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+.widget--team .item .text h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
