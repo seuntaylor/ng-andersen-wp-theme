@@ -88,7 +88,7 @@
                             <ul class="locations dropdown menu" data-dropdown-menu>
                                 <li>
                                     <a href="#" class="selected">
-                                        <span class="inner">United States</span>
+                                        <span class="inner">Nigeria</span>
                                     </a>
                                     <!-- Populated dynamically by parse_countries() via andersen-countries script -->
                                     <ul class="menu"></ul>
