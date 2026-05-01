@@ -1,4 +1,6 @@
 <?php
+
+error_log( 'functions.php is loading' );
 /**
  * Theme Functions
  *
@@ -1027,3 +1029,5 @@ function ng_andersen_ajax_search_team_members() {
 }
 add_action( 'wp_ajax_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
 add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
+
+require_once get_template_directory() . '/theme-settings.php';

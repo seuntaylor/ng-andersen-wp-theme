@@ -99,3 +99,58 @@
     font-weight: 400;
     margin: 0 0 2px 0;
 }
+
+
+/* ============================================================
+   3. CONTACT PAGE OFFICE INFORMATION EFFECTS
+   ============================================================
+*/
+
+.office-info-box {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 15px;
+}
+
+.office-info-box h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.office-detail {
+    margin-bottom: 15px;
+}
+
+.office-detail:last-child {
+    margin-bottom: 0;
+}
+
+.office-detail h5 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+}
+
+.office-detail p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.office-map-wrapper {
+    margin-bottom: 15px;
+}
+
+.office-map-wrapper iframe {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
