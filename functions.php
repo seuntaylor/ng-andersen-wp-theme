@@ -1,6 +1,4 @@
 <?php
-
-error_log( 'functions.php is loading' );
 /**
  * Theme Functions
  *
@@ -1031,3 +1029,19 @@ add_action( 'wp_ajax_ng_andersen_search_team_members', 'ng_andersen_ajax_search_
 add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
 
 require_once get_template_directory() . '/theme-settings.php';
+
+
+add_action( 'admin_init', function() {
+    wp_admin_css_color(
+        'andersen',
+        __( 'Andersen', 'ng-andersen' ),
+        get_template_directory_uri() . '/assets/css/admin-color-scheme.css',
+        array(
+            '#1d2327', // Primary color
+            '#2c3338', // Secondary color
+            '#2271b1', // Accent color
+            '#72aee6'  // Highlight color
+        )
+    );
+} );
+ 

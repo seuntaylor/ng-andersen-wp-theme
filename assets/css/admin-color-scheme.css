@@ -1,0 +1,95 @@
+/**
+ * Andersen Admin Color Scheme
+ * 
+ * Colors:
+ * #50070e - Primary (dark)
+ * #2c3338 - Secondary (medium)
+ * #2f0408 - Accent (blue)
+ * #72aee6 - Highlight (light blue)
+ 
+ * #50070e - Dark Red
+ * #ab0e1e - Andersen Red
+ * #2f0408 - Dark Red (darker)
+ */
+
+/* Primary color - Header and top bar */
+#wpadminbar,
+#wpadminbar .ab-item,
+#wpadminbar .ab-top-menu > li > a {
+    background-color: #50070e;
+    color: #fff;
+}
+
+#wpadminbar .ab-top-menu > li > a:hover,
+#wpadminbar.nojq .quicklinks .ab-top-menu > li a:focus {
+    background-color: #2c3338;
+}
+
+/* Secondary color - Sidebar */
+#adminmenu,
+#adminmenuback,
+#adminmenuwrap,
+#adminmenu > li.current > a {
+    background-color: #2c3338;
+    color: #fff;
+}
+
+#adminmenu a {
+    color: #fff;
+}
+
+#adminmenu li:hover > a,
+#adminmenu li.wp-has-current-submenu > a {
+    background-color: #ab0e1e;
+    color: #fff;
+}
+
+/* Accent color - Buttons and links */
+.wp-admin a,
+.wp-admin a:active {
+    color: #ab0e1e;
+}
+
+.wp-admin a:hover {
+    color: #72aee6;
+}
+
+.wp-admin .button-primary,
+.wp-admin input[type="submit"] {
+    background-color: #ab0e1e;
+    border-color: #ab0e1e;
+    color: #fff;
+}
+
+.wp-admin .button-primary:hover,
+.wp-admin .button-primary:focus,
+.wp-admin input[type="submit"]:hover,
+.wp-admin input[type="submit"]:focus {
+    background-color: #50070e;
+    border-color: #50070e;
+    color: #fff;
+}
+
+/* Highlight color - Focus states */
+.wp-admin input:focus,
+.wp-admin textarea:focus,
+.wp-admin select:focus {
+    border-color: #72aee6;
+    box-shadow: 0 0 0 1px #72aee6;
+}
+
+/* Form table headers */
+.wp-admin .form-table th {
+    border-color: #ddd;
+}
+
+/* Post publish box */
+
+.wp-admin .submitbox .submitdelete {
+    color: #d9534f;
+}
+
+.wp-admin .submitbox .submitdelete:hover {
+    color: #fff;
+    background-color: #d9534f;
+}
