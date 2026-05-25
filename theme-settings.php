@@ -112,48 +112,40 @@ function ng_andersen_render_settings_page() {
             <?php settings_fields( 'ng-andersen-settings' ); ?>
 
             <!-- OFFICE LOCATIONS TAB -->
-            <?php if ( $active_tab === 'offices' ) { ?>
-                <div class="tab-content">
-                    <h2>Office Locations</h2>
-                    <p>Configure office information displayed on the Contact page. You can add up to 3 offices.</p>
+            <div class="tab-content" <?php echo $active_tab !== 'offices' ? 'style="display:none;"' : ''; ?>>
+                <h2>Office Locations</h2>
+                <p>Configure office information displayed on the Contact page. You can add up to 3 offices.</p>
 
-                    <?php
-                    for ( $i = 1; $i <= 3; $i++ ) {
-                        ng_andersen_render_office_section( $i );
-                    }
-                    ?>
-                </div>
-            <?php } ?>
+                <?php
+                for ( $i = 1; $i <= 3; $i++ ) {
+                    ng_andersen_render_office_section( $i );
+                }
+                ?>
+            </div>
 
             <!-- SOCIAL MEDIA TAB -->
-            <?php if ( $active_tab === 'social' ) { ?>
-                <div class="tab-content">
-                    <h2>Social Media Links</h2>
-                    <p>Add links to your social media profiles. Leave blank to hide.</p>
+            <div class="tab-content" <?php echo $active_tab !== 'social' ? 'style="display:none;"' : ''; ?>>
+                <h2>Social Media Links</h2>
+                <p>Add links to your social media profiles. Leave blank to hide.</p>
 
-                    <?php ng_andersen_render_social_media_section(); ?>
-                </div>
-            <?php } ?>
+                <?php ng_andersen_render_social_media_section(); ?>
+            </div>
 
             <!-- TRACKING & ANALYTICS TAB -->
-            <?php if ( $active_tab === 'analytics' ) { ?>
-                <div class="tab-content">
-                    <h2>Tracking & Analytics</h2>
-                    <p>Configure analytics and tracking services.</p>
+            <div class="tab-content" <?php echo $active_tab !== 'analytics' ? 'style="display:none;"' : ''; ?>>
+                <h2>Tracking & Analytics</h2>
+                <p>Configure analytics and tracking services.</p>
 
-                    <?php ng_andersen_render_analytics_section(); ?>
-                </div>
-            <?php } ?>
+                <?php ng_andersen_render_analytics_section(); ?>
+            </div>
 
             <!-- CAPTCHA API KEYS TAB -->
-            <?php if ( $active_tab === 'captcha' ) { ?>
-                <div class="tab-content">
-                    <h2>CAPTCHA API Keys</h2>
-                    <p>Configure Cloudflare Turnstile API keys for form protection.</p>
+            <div class="tab-content" <?php echo $active_tab !== 'captcha' ? 'style="display:none;"' : ''; ?>>
+                <h2>CAPTCHA API Keys</h2>
+                <p>Configure Cloudflare Turnstile API keys for form protection.</p>
 
-                    <?php ng_andersen_render_captcha_section(); ?>
-                </div>
-            <?php } ?>
+                <?php ng_andersen_render_captcha_section(); ?>
+            </div>
 
             <?php submit_button(); ?>
         </form>
@@ -214,7 +206,7 @@ function ng_andersen_render_office_section( $office_number ) {
                         rows="4"
                         style="width: 100%; max-width: 600px; padding: 8px; font-family: monospace;"
                     ><?php echo esc_textarea( $address ); ?></textarea>
-                    <p class="description">Full office address. Use line breaks for multiple lines.</p>
+                    <p class="description">Full office address (street, city, postal code, country). Use line breaks for multiple lines.</p>
                 </td>
             </tr>
 
@@ -300,9 +292,10 @@ function ng_andersen_render_social_media_section() {
                     id="ng_andersen_social_facebook"
                     name="ng_andersen_social_facebook"
                     value="<?php echo esc_attr( $facebook ); ?>"
-                    placeholder="Full URL to your Facebook page."
+                    placeholder="https://www.facebook.com/yourpage"
                     style="width: 100%; max-width: 400px; padding: 8px;"
                 >
+                <p class="description">Full URL to your Facebook page.</p>
             </td>
         </tr>
 
@@ -316,9 +309,10 @@ function ng_andersen_render_social_media_section() {
                     id="ng_andersen_social_twitter"
                     name="ng_andersen_social_twitter"
                     value="<?php echo esc_attr( $twitter ); ?>"
-                    placeholder="Full URL to your Twitter/X profile."
+                    placeholder="https://www.twitter.com/yourhandle"
                     style="width: 100%; max-width: 400px; padding: 8px;"
                 >
+                <p class="description">Full URL to your Twitter/X profile.</p>
             </td>
         </tr>
 
@@ -332,9 +326,10 @@ function ng_andersen_render_social_media_section() {
                     id="ng_andersen_social_linkedin"
                     name="ng_andersen_social_linkedin"
                     value="<?php echo esc_attr( $linkedin ); ?>"
-                    placeholder="Full URL to your LinkedIn company page."
+                    placeholder="https://www.linkedin.com/company/yourcompany"
                     style="width: 100%; max-width: 400px; padding: 8px;"
                 >
+                <p class="description">Full URL to your LinkedIn company page.</p>
             </td>
         </tr>
 
@@ -348,9 +343,10 @@ function ng_andersen_render_social_media_section() {
                     id="ng_andersen_social_instagram"
                     name="ng_andersen_social_instagram"
                     value="<?php echo esc_attr( $instagram ); ?>"
-                    placeholder="Full URL to your Instagram profile."
+                    placeholder="https://www.instagram.com/yourprofile"
                     style="width: 100%; max-width: 400px; padding: 8px;"
                 >
+                <p class="description">Full URL to your Instagram profile.</p>
             </td>
         </tr>
 
@@ -364,9 +360,10 @@ function ng_andersen_render_social_media_section() {
                     id="ng_andersen_social_youtube"
                     name="ng_andersen_social_youtube"
                     value="<?php echo esc_attr( $youtube ); ?>"
-                    placeholder="Full URL to your YouTube channel."
+                    placeholder="https://www.youtube.com/@yourchannel"
                     style="width: 100%; max-width: 400px; padding: 8px;"
                 >
+                <p class="description">Full URL to your YouTube channel.</p>
             </td>
         </tr>
     </table>

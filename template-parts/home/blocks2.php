@@ -2,10 +2,12 @@
 /**
  * Homepage Section: Blocks 2 — Featured Posts
  *
- * Currently static. Future development: the featured item (large left column)
- * will be driven by a manually selected or sticky post. The four smaller items
- * in the right column will be populated by the most recent WP Posts,
- * excluding the featured post.
+ * Left column displays a static featured item.
+ * Right column displays the 5 latest published blog posts dynamically.
+ *
+ * Future development: the featured item (large left column) will be driven
+ * by a manually selected or sticky post, and the recent posts query will
+ * exclude that featured post.
  *
  * @package ng-andersen
  */
@@ -14,7 +16,7 @@
     <div class="container">
         <div class="grid-x grid-padding-x">
 
-            <!-- Featured Post -->
+            <!-- Featured Post (Static) -->
             <div class="cell large-7">
                 <div class="item item-featured">
                     <div class="image">
@@ -32,79 +34,65 @@
                 </div>
             </div>
 
-            <!-- Recent Posts -->
+            <!-- Recent Posts (Dynamic) -->
             <div class="cell large-5">
+                <?php
+                $latest_posts = new WP_Query( array(
+                    'post_type'      => 'post',
+                    'posts_per_page' => 5,
+                    'post_status'    => 'publish',
+                    'orderby'        => 'date',
+                    'order'          => 'DESC',
+                ) );
 
-                <div class="item">
-                    <a href="#" class="image">
-                        <span class="img-bg">
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block5.jpg' ); ?>" alt="image">
-                        </span>
-                    </a>
-                    <div class="text">
-                        <div class="text-body">
-                            <h3><a href="#">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</a></h3>
-                            <p class="text-meta">7 min read</p>
+                if ( $latest_posts->have_posts() ) {
+                    while ( $latest_posts->have_posts() ) {
+                        $latest_posts->the_post();
+                        ?>
+                        <div class="item">
+                            <a href="<?php the_permalink(); ?>" class="image">
+                                <span class="img-bg">
+                                    <?php
+                                    if ( has_post_thumbnail() ) {
+                                        the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
+                                    } else {
+                                        ?>
+                                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block5.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                        <?php
+                                    }
+                                    ?>
+                                </span>
+                            </a>
+                            <div class="text">
+                                <div class="text-body">
+                                    <p class="text-meta post-date"><?php echo esc_html( get_the_date() ); ?></p>
+                                    <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                                    <?php
+                                    $categories = get_the_category();
+                                    if ( ! empty( $categories ) ) {
+                                        ?>
+                                        <p class="text-meta post-category"><?php echo esc_html( $categories[0]->name ); ?></p>
+                                        <?php
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                    wp_reset_postdata();
+                } else {
+                    ?>
+                    <div class="item">
+                        <div class="text">
+                            <div class="text-body">
+                                <p>No blog posts found.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="item">
-                    <a href="#" class="image">
-                        <span class="img-bg">
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block6.jpg' ); ?>" alt="image">
-                        </span>
-                    </a>
-                    <div class="text">
-                        <div class="text-body">
-                            <h3><a href="#">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</a></h3>
-                            <p class="text-meta">7 min read</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item">
-                    <a href="#" class="image">
-                        <span class="img-bg">
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block7.jpg' ); ?>" alt="image">
-                        </span>
-                    </a>
-                    <div class="text">
-                        <div class="text-body">
-                            <h3><a href="#">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</a></h3>
-                            <p class="text-meta">7 min read</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item">
-                    <a href="#" class="image">
-                        <span class="img-bg">
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block8.jpg' ); ?>" alt="image">
-                        </span>
-                    </a>
-                    <div class="text">
-                        <div class="text-body">
-                            <h3><a href="#">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</a></h3>
-                            <p class="text-meta">7 min read</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item">
-                    <a href="#" class="image">
-                        <span class="img-bg">
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block9.jpg' ); ?>" alt="image">
-                        </span>
-                    </a>
-                    <div class="text">
-                        <div class="text-body">
-                            <h3><a href="#">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</a></h3>
-                            <p class="text-meta">7 min read</p>
-                        </div>
-                    </div>
-                </div>
-
+                    <?php
+                }
+                ?>
             </div>
 
         </div>

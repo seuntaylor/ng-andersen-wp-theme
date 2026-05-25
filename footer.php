@@ -25,17 +25,62 @@
                                         alt="<?php bloginfo( 'name' ); ?>"
                                     >
                                 </div>
-                                <ul class="footer-social">
-                                    <li class="social-link linkedin">
-                                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
-                                    </li>
-                                    <li class="social-link twitter">
-                                        <a href="#" aria-label="X (Twitter)"><i class="fa-brands fa-square-x-twitter"></i></a>
-                                    </li>
-                                    <li class="social-link facebook">
-                                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-square-facebook"></i></a>
-                                    </li>
-                                </ul>
+                                <?php
+                                $social_links = ng_andersen_get_social_links();
+
+                                // Define icons and labels in display order
+                                $social_icons = array(
+                                    'linkedin'  => array(
+                                        'class' => 'fa-brands fa-linkedin',
+                                        'label' => 'LinkedIn',
+                                    ),
+                                    'twitter'   => array(
+                                        'class' => 'fa-brands fa-square-x-twitter',
+                                        'label' => 'X (Twitter)',
+                                    ),
+                                    'facebook'  => array(
+                                        'class' => 'fa-brands fa-square-facebook',
+                                        'label' => 'Facebook',
+                                    ),
+                                    'instagram' => array(
+                                        'class' => 'fa-brands fa-square-instagram',
+                                        'label' => 'Instagram',
+                                    ),
+                                    'youtube'   => array(
+                                        'class' => 'fa-brands fa-square-youtube',
+                                        'label' => 'YouTube',
+                                    ),
+                                );
+
+                                // Only show the social list if at least one URL exists
+                                $has_socials = false;
+                                foreach ( $social_icons as $key => $icon ) {
+                                    if ( ! empty( $social_links[ $key ] ) ) {
+                                        $has_socials = true;
+                                        break;
+                                    }
+                                }
+
+                                if ( $has_socials ) {
+                                    ?>
+                                    <ul class="footer-social">
+                                        <?php
+                                        foreach ( $social_icons as $key => $icon ) {
+                                            if ( ! empty( $social_links[ $key ] ) ) {
+                                                ?>
+                                                <li class="social-link <?php echo esc_attr( $key ); ?>">
+                                                    <a href="<?php echo esc_url( $social_links[ $key ] ); ?>" aria-label="<?php echo esc_attr( $icon['label'] ); ?>" target="_blank" rel="noopener noreferrer">
+                                                        <i class="<?php echo esc_attr( $icon['class'] ); ?>"></i>
+                                                    </a>
+                                                </li>
+                                                <?php
+                                            }
+                                        }
+                                        ?>
+                                    </ul>
+                                    <?php
+                                }
+                                ?>
                             </div>
 
                             <!-- Footer Widget Column 1 -->
@@ -58,7 +103,7 @@
 
                         <!-- Footer Bottom Bar -->
                         <div class="footer-bottom">
-                            <p class="footer-copyright">&copy;Andersen Tax LLC and [INSERT LEGAL ENTITY NAME]. [INSERT LEGAL ENTITY NAME] is the [COUNTRY NAME] member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
+                            <p class="footer-copyright">&copy;Andersen Tax LLC and Andersen Tax LP. Andersen Tax LP is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax & Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
 
                             <div class="footer-utility-menu">
                                 <ul>
