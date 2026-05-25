@@ -154,3 +154,34 @@
     border: 1px solid #e0e0e0;
     border-radius: 4px;
 }
+
+/* ============================================================
+   3. CONTACT FORM 7 CUSTOMISATIONS
+   ============================================================
+*/
+/* CF7 Form Grid Spacing */
+.contact-form-wrapper .grid-x {
+    margin-left: -10px;
+    margin-right: -10px;
+    margin-bottom: 20px;
+}
+
+.contact-form-wrapper .grid-x .cell {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Form fields styling */
+.contact-form-wrapper input[type="text"],
+.contact-form-wrapper input[type="email"],
+.contact-form-wrapper input[type="tel"],
+.contact-form-wrapper textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Label spacing */
+.contact-form-wrapper label {
+    display: block;
+    margin-bottom: 5px;
+}

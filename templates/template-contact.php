@@ -1,7 +1,7 @@
 <?php
 /**
  * Template Name: Contact
- * Description: Contact page with contact form and office locations
+ * Description: Contact page with offices/maps on left and CF7 form on right
  *
  * @package ng-andersen
  */
@@ -36,11 +36,75 @@ get_header();
 </div>
 
 <!-- Main Content Section -->
-<div class="section-sidebar">
+<div class="section-sidebar" style="padding-top: 60px;">
     <div class="container">
-        <!-- Row 1: Contact Form -->
-        <div class="grid-x grid-padding-x" style="margin-bottom: 40px;">
-            <div class="cell">
+        <div class="grid-x grid-padding-x">
+            
+            <!-- LEFT COLUMN: Office Addresses & Maps -->
+            <div class="cell large-6">
+                <?php
+                // Loop through offices 1, 2, and 3
+                for ( $i = 1; $i <= 3; $i++ ) {
+                    $office = ng_andersen_get_office( $i );
+                    
+                    // Only display if office has a name
+                    if ( ! empty( $office['name'] ) ) {
+                        ?>
+                        <!-- Office <?php echo absint( $i ); ?> Address -->
+                        <div class="office-info-box" style="margin-bottom: 20px;">
+                            <h3><?php echo esc_html( $office['name'] ); ?></h3>
+                            
+                            <?php if ( ! empty( $office['address'] ) ) { ?>
+                                <div class="office-detail">
+                                    <h5>Address</h5>
+                                    <p><?php echo wp_kses_post( nl2br( $office['address'] ) ); ?></p>
+                                </div>
+                            <?php } ?>
+
+                            <?php if ( ! empty( $office['email'] ) ) { ?>
+                                <div class="office-detail">
+                                    <h5>Email</h5>
+                                    <p><a href="<?php echo esc_url( 'mailto:' . $office['email'] ); ?>"><?php echo esc_html( $office['email'] ); ?></a></p>
+                                </div>
+                            <?php } ?>
+
+                            <?php if ( ! empty( $office['phone'] ) ) { ?>
+                                <div class="office-detail">
+                                    <h5>Phone</h5>
+                                    <p><a href="<?php echo esc_url( 'tel:' . $office['phone'] ); ?>"><?php echo esc_html( $office['phone'] ); ?></a></p>
+                                </div>
+                            <?php } ?>
+                        </div>
+
+                        <!-- Office <?php echo absint( $i ); ?> Map -->
+                        <?php if ( ! empty( $office['map_code'] ) ) { ?>
+                            <div class="office-map-wrapper" style="margin-bottom: 40px;">
+                                <?php
+                                // Allow iframes for Google Maps embeds
+                                $allowed_html = array(
+                                    'iframe' => array(
+                                        'src'             => true,
+                                        'width'           => true,
+                                        'height'          => true,
+                                        'style'           => true,
+                                        'allowfullscreen' => true,
+                                        'loading'         => true,
+                                        'referrerpolicy'  => true,
+                                        'frameborder'     => true,
+                                    ),
+                                );
+                                echo wp_kses( $office['map_code'], $allowed_html );
+                                ?>
+                            </div>
+                        <?php } ?>
+                        <?php
+                    }
+                }
+                ?>
+            </div>
+
+            <!-- RIGHT COLUMN: Contact Form -->
+            <div class="cell large-6">
                 <div class="contact-form-wrapper">
                     <?php
                     if ( have_posts() ) {
@@ -52,96 +116,7 @@ get_header();
                     ?>
                 </div>
             </div>
-        </div>
 
-        <!-- Row 2: Office 1 -->
-        <div class="grid-x grid-padding-x" style="margin-bottom: 40px;">
-            <?php
-            $office_1 = ng_andersen_get_office( 1 );
-            if ( ! empty( $office_1['name'] ) ) {
-                ?>
-                <!-- Office 1 Info -->
-                <div class="cell large-6">
-                    <div class="office-info-box">
-                        <h3><?php echo esc_html( $office_1['name'] ); ?></h3>
-                        
-                        <?php if ( ! empty( $office_1['address'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Address</h5>
-                                <p><?php echo wp_kses_post( nl2br( $office_1['address'] ) ); ?></p>
-                            </div>
-                        <?php } ?>
-
-                        <?php if ( ! empty( $office_1['email'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Email</h5>
-                                <p><a href="<?php echo esc_url( 'mailto:' . $office_1['email'] ); ?>"><?php echo esc_html( $office_1['email'] ); ?></a></p>
-                            </div>
-                        <?php } ?>
-
-                        <?php if ( ! empty( $office_1['phone'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Phone</h5>
-                                <p><a href="<?php echo esc_url( 'tel:' . $office_1['phone'] ); ?>"><?php echo esc_html( $office_1['phone'] ); ?></a></p>
-                            </div>
-                        <?php } ?>
-                    </div>
-                </div>
-
-                <!-- Office 1 Map -->
-                <div class="cell large-6">
-                    <div class="office-map-wrapper">
-                        <?php echo wp_kses( $office_1['map_code'], wp_kses_allowed_html( 'post' ) ); ?>
-                    </div>
-                </div>
-                <?php
-            }
-            ?>
-        </div>
-
-        <!-- Row 3: Office 2 -->
-        <div class="grid-x grid-padding-x" style="margin-bottom: 40px;">
-            <?php
-            $office_2 = ng_andersen_get_office( 2 );
-            if ( ! empty( $office_2['name'] ) ) {
-                ?>
-                <!-- Office 2 Info -->
-                <div class="cell large-6">
-                    <div class="office-info-box">
-                        <h3><?php echo esc_html( $office_2['name'] ); ?></h3>
-                        
-                        <?php if ( ! empty( $office_2['address'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Address</h5>
-                                <p><?php echo wp_kses_post( nl2br( $office_2['address'] ) ); ?></p>
-                            </div>
-                        <?php } ?>
-
-                        <?php if ( ! empty( $office_2['email'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Email</h5>
-                                <p><a href="<?php echo esc_url( 'mailto:' . $office_2['email'] ); ?>"><?php echo esc_html( $office_2['email'] ); ?></a></p>
-                            </div>
-                        <?php } ?>
-
-                        <?php if ( ! empty( $office_2['phone'] ) ) { ?>
-                            <div class="office-detail">
-                                <h5>Phone</h5>
-                                <p><a href="<?php echo esc_url( 'tel:' . $office_2['phone'] ); ?>"><?php echo esc_html( $office_2['phone'] ); ?></a></p>
-                            </div>
-                        <?php } ?>
-                    </div>
-                </div>
-
-                <!-- Office 2 Map -->
-                <div class="cell large-6">
-                    <div class="office-map-wrapper">
-                        <?php echo wp_kses( $office_2['map_code'], wp_kses_allowed_html( 'post' ) ); ?>
-                    </div>
-                </div>
-                <?php
-            }
-            ?>
         </div>
     </div>
 </div>
