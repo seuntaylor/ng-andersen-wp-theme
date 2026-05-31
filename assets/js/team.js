@@ -1,5 +1,5 @@
 /**
- * Custom Theme JavaScript
+ * Team JavaScript
  *
  * Handles:
  * - Team Member Search with filters and pagination
@@ -21,13 +21,13 @@
         },
 
         bindEvents: function() {
-            // Name and position searches — debounced
-            $(document).on('keyup', '.team-search-input[data-filter="name"], .team-search-input[data-filter="position"]', function() {
+            // Name search — debounced
+            $(document).on('keyup', '#team-search-name', function() {
                 TeamSearch.debounceSearch();
             });
 
             // Location dropdown — immediate
-            $(document).on('change', '.team-search-input[data-filter="location"]', function() {
+            $(document).on('change', '#team-search-location', function() {
                 TeamSearch.performSearch(1);
             });
 
@@ -59,25 +59,25 @@
         debounceSearch: function() {
             clearTimeout(this.debounceTimer);
             this.debounceTimer = setTimeout(function() {
-                TeamSearch.performSearch(1); // Reset to page 1 on new search
+                TeamSearch.performSearch(1);
             }, this.debounceDelay);
         },
 
         performSearch: function(page = 1) {
-            const name = $('#team-search-name').val();
+            const name     = $('#team-search-name').val();
             const position = $('#team-search-position').val();
             const location = $('#team-search-location').val();
 
             // Get location name for summary
             let locationName = 'All Locations';
-            if ( location ) {
+            if (location) {
                 locationName = $('#team-search-location option:selected').text();
             }
 
             // Update results summary
             const summaryParts = [];
-            summaryParts.push( locationName );
-            summaryParts.push( position ? position : 'All Positions' );
+            summaryParts.push(locationName);
+            summaryParts.push(position ? position : 'All Positions');
             $('#team-results-summary').html('<p><strong>Search Results:</strong> ' + summaryParts.join(' / ') + '</p>');
 
             // Show loading state
@@ -89,11 +89,11 @@
                 dataType: 'json',
                 data: {
                     action: 'ng_andersen_search_team_members',
-                    nonce: window.teamSearchData.nonce,
-                    name: name,
+                    nonce:  window.teamSearchData.nonce,
+                    name:     name,
                     position: position,
                     location: location,
-                    paged: page,
+                    paged:    page,
                 },
                 success: function(response) {
                     if (response.success) {
@@ -109,17 +109,13 @@
         },
 
         resetSearch: function() {
-            // Clear all inputs
             $('#team-search-name').val('');
             $('#team-search-position').val('');
             $('#team-search-location').val('');
-
-            // Perform search with empty values (shows all)
             this.performSearch(1);
         }
     };
 
-    // Initialize on document ready
     $(document).ready(function() {
         TeamSearch.init();
     });

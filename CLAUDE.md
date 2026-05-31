@@ -35,7 +35,8 @@ ng-andersen/
 │   ├── img/
 │   └── js/
 │       ├── app.js               (compiled JS)
-│       └── custom.js            (custom JS for team search etc.)
+│       ├── team.js              (team search, filters, pagination)
+│       └── publications.js      (publications AJAX filtering and pagination)
 ├── template-parts/
 │   ├── home/                    (homepage sections)
 │   └── page/                    (page-specific parts)
@@ -179,11 +180,18 @@ Team listing uses clip-path mask with object-position to control which part of p
 ```
 
 ### AJAX Team Search
-The team page uses AJAX search with debounced input (250ms). Endpoints:
+The team page uses AJAX search with debounced input (250ms). Script: `team.js`. Endpoints:
 - `wp_ajax_ng_andersen_search_team_members` (public)
 - `wp_ajax_nopriv_ng_andersen_search_team_members` (public)
 
 Nonce: `team_search_nonce`
+
+### AJAX Publications
+The publications page uses AJAX for category filtering and pagination. Script: `publications.js`. Endpoints:
+- `wp_ajax_ng_andersen_get_publications` (public)
+- `wp_ajax_nopriv_ng_andersen_get_publications` (public)
+
+Nonce: `publications_nonce`
 
 ## Security Standards
 

@@ -134,20 +134,36 @@ function theme_enqueue_assets() {
     ";
     wp_add_inline_script( 'theme-scripts', $parse_countries_js );
 
-    // Team search script — only on team page
+    // Team script — only on team page
     if ( is_page_template( 'templates/page-team.php' ) ) {
         wp_enqueue_script(
-            'theme-custom-js',
-            get_template_directory_uri() . '/assets/js/custom.js',
+            'team-js',
+            get_template_directory_uri() . '/assets/js/team.js',
             array( 'jquery' ),
             wp_get_theme()->get( 'Version' ),
             true
         );
 
-        // Localize script data for AJAX
-        wp_localize_script( 'theme-custom-js', 'teamSearchData', array(
+        wp_localize_script( 'team-js', 'teamSearchData', array(
             'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
             'nonce'   => wp_create_nonce( 'team_search_nonce' ),
+        ) );
+    }
+
+    // Publications script — only on publications page
+    if ( is_page_template( 'templates/page-publications.php' ) ) {
+        wp_enqueue_script(
+            'publications-js',
+            get_template_directory_uri() . '/assets/js/publications.js',
+            array( 'jquery' ),
+            wp_get_theme()->get( 'Version' ),
+            true
+        );
+
+        wp_localize_script( 'publications-js', 'publicationsData', array(
+            'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
+            'nonce'   => wp_create_nonce( 'publications_nonce' ),
+            'pageUrl' => esc_url( get_permalink( get_option( 'page_for_posts' ) ) ),
         ) );
     }
 }
@@ -451,7 +467,7 @@ function theme_render_home_slide_content_meta_box( $post ) {
 // Render CTA meta box
 function theme_render_home_slide_cta_meta_box( $post ) {
     $button_text = get_post_meta( $post->ID, '_home_slide_button_text', true );
-    $button_url = get_post_meta( $post->ID, '_home_slide_button_url', true );
+    $button_url  = get_post_meta( $post->ID, '_home_slide_button_url', true );
     ?>
 
     <p style="font-size: 12px; color: #666; margin-bottom: 16px;">
@@ -510,13 +526,12 @@ function theme_save_home_slide_meta( $post_id ) {
 
     // Save button text — only if both text and URL are provided
     $button_text = isset( $_POST['home_slide_button_text'] ) ? sanitize_text_field( $_POST['home_slide_button_text'] ) : '';
-    $button_url = isset( $_POST['home_slide_button_url'] ) ? esc_url_raw( $_POST['home_slide_button_url'] ) : '';
+    $button_url  = isset( $_POST['home_slide_button_url'] )  ? esc_url_raw( $_POST['home_slide_button_url'] )          : '';
 
     if ( ! empty( $button_text ) && ! empty( $button_url ) ) {
         update_post_meta( $post_id, '_home_slide_button_text', $button_text );
-        update_post_meta( $post_id, '_home_slide_button_url', $button_url );
+        update_post_meta( $post_id, '_home_slide_button_url',  $button_url );
     } else {
-        // If either is empty, delete both
         delete_post_meta( $post_id, '_home_slide_button_text' );
         delete_post_meta( $post_id, '_home_slide_button_url' );
     }
@@ -528,7 +543,6 @@ add_action( 'save_post_home_slide', 'theme_save_home_slide_meta' );
 function theme_add_home_slides_columns( $columns ) {
     $new_columns = array();
 
-    // Insert image column after checkbox
     foreach ( $columns as $key => $value ) {
         $new_columns[ $key ] = $value;
         if ( $key === 'cb' ) {
@@ -554,7 +568,7 @@ function theme_display_home_slides_featured_image( $column, $post_id ) {
 add_action( 'manage_home_slide_posts_custom_column', 'theme_display_home_slides_featured_image', 10, 2 );
 
 
-// Make featured image column sortable by title (or whatever makes sense)
+// Make featured image column sortable
 function theme_home_slides_sortable_columns( $columns ) {
     $columns['featured_image'] = 'title';
     return $columns;
@@ -569,87 +583,27 @@ function theme_home_slides_admin_styles() {
     if ( ! $screen || 'edit-home_slide' !== $screen->id ) {
         return;
     }
-
     ?>
     <style type="text/css">
-        /* Desktop: Set column widths */
         @media screen and (min-width: 783px) {
-            .wp-list-table.posts #featured_image {
-                width: 10%;
-            }
-
-            .wp-list-table.posts .column-title {
-                width: 60%;
-            }
-
-            .wp-list-table.posts .column-date {
-                width: 30%;
-            }
+            .wp-list-table.posts #featured_image { width: 10%; }
+            .wp-list-table.posts .column-title   { width: 60%; }
+            .wp-list-table.posts .column-date    { width: 30%; }
         }
 
-        /* Mobile: Responsive adjustments */
         @media screen and (max-width: 782px) {
-            /* Hide date column on mobile */
             .wp-list-table.posts .column-date,
-            .wp-list-table.posts th#date {
-                display: none;
-            }
-
-            /* Make title take full width */
+            .wp-list-table.posts th#date            { display: none; }
             .wp-list-table.posts th.column-title,
-            .wp-list-table.posts td.column-title {
-                width: 100% !important;
-                display: block !important;
-                padding: 10px !important;
-                border: none !important;
-            }
-
-            /* Make image column full width */
+            .wp-list-table.posts td.column-title    { width: 100% !important; display: block !important; padding: 10px !important; border: none !important; }
             .wp-list-table.posts th#featured_image,
-            .wp-list-table.posts td.featured_image {
-                width: 100% !important;
-                display: block !important;
-                padding: 10px !important;
-                border: none !important;
-                text-align: left;
-            }
-
-            /* Stack rows */
-            .wp-list-table.posts tbody tr {
-                display: block !important;
-                border: 1px solid #ddd !important;
-                margin-bottom: 15px !important;
-                border-radius: 4px !important;
-            }
-
-            /* Checkbox column */
+            .wp-list-table.posts td.featured_image  { width: 100% !important; display: block !important; padding: 10px !important; border: none !important; text-align: left; }
+            .wp-list-table.posts tbody tr           { display: block !important; border: 1px solid #ddd !important; margin-bottom: 15px !important; border-radius: 4px !important; }
             .wp-list-table.posts th.check-column,
-            .wp-list-table.posts td.check-column {
-                display: block !important;
-                width: 100% !important;
-                padding: 10px !important;
-                border: none !important;
-            }
-
-            /* Header row styling */
-            .wp-list-table.posts thead tr {
-                display: block !important;
-            }
-
-            .wp-list-table.posts thead th {
-                display: block !important;
-                width: 100% !important;
-                border: none !important;
-                padding: 10px !important;
-                margin-bottom: 0 !important;
-            }
-
-            /* Featured image styling */
-            .wp-list-table.posts td.featured_image img {
-                display: block;
-                max-width: 80px;
-                height: auto;
-            }
+            .wp-list-table.posts td.check-column    { display: block !important; width: 100% !important; padding: 10px !important; border: none !important; }
+            .wp-list-table.posts thead tr           { display: block !important; }
+            .wp-list-table.posts thead th           { display: block !important; width: 100% !important; border: none !important; padding: 10px !important; margin-bottom: 0 !important; }
+            .wp-list-table.posts td.featured_image img { display: block; max-width: 80px; height: auto; }
         }
     </style>
     <?php
@@ -720,7 +674,6 @@ add_action( 'init', 'theme_register_team_locations_taxonomy' );
 
 
 // Remove team location taxonomy meta box from editor
-// Location is now a dropdown field in the custom meta box, not a taxonomy assignment
 function ng_andersen_remove_team_location_meta_box() {
     remove_meta_box( 'team_locationdiv', 'team_member', 'side' );
 }
@@ -747,7 +700,7 @@ function ng_andersen_render_team_member_meta_box( $post ) {
 
     $position = get_post_meta( $post->ID, '_team_member_position', true );
     $location = get_post_meta( $post->ID, '_team_member_location', true );
-    $email = get_post_meta( $post->ID, '_team_member_email', true );
+    $email    = get_post_meta( $post->ID, '_team_member_email',    true );
     ?>
 
     <div style="margin-bottom: 20px;">
@@ -778,7 +731,6 @@ function ng_andersen_render_team_member_meta_box( $post ) {
         >
             <option value="">Select a Location</option>
             <?php
-            // Get all team locations
             $locations = get_terms( array(
                 'taxonomy'   => 'team_location',
                 'hide_empty' => false,
@@ -839,20 +791,16 @@ function ng_andersen_save_team_member_meta( $post_id ) {
         return;
     }
 
-    // Save position
     if ( isset( $_POST['team_member_position'] ) ) {
         update_post_meta( $post_id, '_team_member_position', sanitize_text_field( $_POST['team_member_position'] ) );
     }
 
-    // Save location (taxonomy term ID)
     if ( isset( $_POST['team_member_location'] ) && ! empty( $_POST['team_member_location'] ) ) {
-        $location_id = absint( $_POST['team_member_location'] );
-        update_post_meta( $post_id, '_team_member_location', $location_id );
+        update_post_meta( $post_id, '_team_member_location', absint( $_POST['team_member_location'] ) );
     } else {
         delete_post_meta( $post_id, '_team_member_location' );
     }
 
-    // Save and validate email
     if ( isset( $_POST['team_member_email'] ) ) {
         $email = sanitize_email( $_POST['team_member_email'] );
         if ( is_email( $email ) ) {
@@ -870,11 +818,10 @@ add_action( 'save_post_team_member', 'ng_andersen_save_team_member_meta' );
 function ng_andersen_ajax_search_team_members() {
     check_ajax_referer( 'team_search_nonce', 'nonce' );
 
-    $name = isset( $_POST['name'] ) ? sanitize_text_field( $_POST['name'] ) : '';
+    $name     = isset( $_POST['name'] )     ? sanitize_text_field( $_POST['name'] )     : '';
     $position = isset( $_POST['position'] ) ? sanitize_text_field( $_POST['position'] ) : '';
-    // SECURITY FIX: Cast location to int immediately
-    $location = isset( $_POST['location'] ) ? absint( $_POST['location'] ) : 0;
-    $paged = isset( $_POST['paged'] ) ? absint( $_POST['paged'] ) : 1;
+    $location = isset( $_POST['location'] ) ? absint( $_POST['location'] )               : 0;
+    $paged    = isset( $_POST['paged'] )    ? absint( $_POST['paged'] )                  : 1;
 
     $args = array(
         'post_type'      => 'team_member',
@@ -884,16 +831,11 @@ function ng_andersen_ajax_search_team_members() {
         'order'          => 'ASC',
     );
 
-    // Search by name (post title)
     if ( ! empty( $name ) ) {
         $args['s'] = $name;
     }
 
-    // Filter by position (custom field)
     if ( ! empty( $position ) ) {
-        if ( ! isset( $args['meta_query'] ) ) {
-            $args['meta_query'] = array();
-        }
         $args['meta_query'][] = array(
             'key'     => '_team_member_position',
             'value'   => $position,
@@ -901,11 +843,7 @@ function ng_andersen_ajax_search_team_members() {
         );
     }
 
-    // Filter by location (custom field — term ID)
     if ( ! empty( $location ) ) {
-        if ( ! isset( $args['meta_query'] ) ) {
-            $args['meta_query'] = array();
-        }
         $args['meta_query'][] = array(
             'key'     => '_team_member_location',
             'value'   => $location,
@@ -914,7 +852,6 @@ function ng_andersen_ajax_search_team_members() {
         );
     }
 
-    // If we have multiple meta queries, set the relation to AND
     if ( isset( $args['meta_query'] ) && count( $args['meta_query'] ) > 1 ) {
         $args['meta_query']['relation'] = 'AND';
     }
@@ -929,7 +866,7 @@ function ng_andersen_ajax_search_team_members() {
             <?php
             while ( $query->have_posts() ) {
                 $query->the_post();
-                $position = get_post_meta( get_the_ID(), '_team_member_position', true );
+                $position    = get_post_meta( get_the_ID(), '_team_member_position', true );
                 $location_id = get_post_meta( get_the_ID(), '_team_member_location', true );
                 $location_text = '';
 
@@ -954,14 +891,12 @@ function ng_andersen_ajax_search_team_members() {
         </div>
 
         <?php
-        // Pagination
         $total_pages = $query->max_num_pages;
         if ( $total_pages > 1 ) {
             ?>
             <nav aria-label="Pagination">
                 <ul class="pagination text-center">
                     <?php
-                    // Previous button — only show if not on first page
                     if ( $paged > 1 ) {
                         ?>
                         <li class="pagination-previous">
@@ -974,7 +909,6 @@ function ng_andersen_ajax_search_team_members() {
                         <?php
                     }
 
-                    // Page numbers — show first 4, ellipsis, last 2
                     for ( $i = 1; $i <= $total_pages; $i++ ) {
                         if ( $i <= 4 || $i > $total_pages - 2 ) {
                             if ( $i == $paged ) {
@@ -993,7 +927,6 @@ function ng_andersen_ajax_search_team_members() {
                         }
                     }
 
-                    // Next button — only show if not on last page
                     if ( $paged < $total_pages ) {
                         ?>
                         <li class="pagination-next">
@@ -1025,11 +958,193 @@ function ng_andersen_ajax_search_team_members() {
     $output = ob_get_clean();
     wp_send_json_success( array( 'html' => $output ) );
 }
-add_action( 'wp_ajax_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
+add_action( 'wp_ajax_ng_andersen_search_team_members',        'ng_andersen_ajax_search_team_members' );
 add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_search_team_members' );
 
-require_once get_template_directory() . '/theme-settings.php';
 
+// ============================================================
+// 10. AJAX: PUBLICATIONS
+// ============================================================
+
+function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
+    $query_args = array(
+        'post_type'      => 'post',
+        'posts_per_page' => 12,
+        'paged'          => $page,
+        'post_status'    => 'publish',
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    );
+
+    if ( $cat > 0 ) {
+        $query_args['tax_query'] = array(
+            array(
+                'taxonomy' => 'category',
+                'field'    => 'term_id',
+                'terms'    => $cat,
+            ),
+        );
+    }
+
+    $publications = new WP_Query( $query_args );
+    $total_pages  = $publications->max_num_pages;
+
+    ob_start();
+    ?>
+
+    <div class="section-blocks section-blocks1 section-blocks16">
+        <div class="container">
+            <div class="grid-x grid-padding-x" id="publications-posts">
+                <?php
+                if ( $publications->have_posts() ) {
+                    while ( $publications->have_posts() ) {
+                        $publications->the_post();
+                        ?>
+                        <div class="cell medium-6 large-4">
+                            <div class="item">
+                                <div class="image">
+                                    <span class="img-bg">
+                                        <?php
+                                        if ( has_post_thumbnail() ) {
+                                            the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
+                                        } else {
+                                            ?>
+                                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                            <?php
+                                        }
+                                        ?>
+                                    </span>
+                                    <?php
+                                    // Category badge overlaid on image
+                                    $categories = get_the_category();
+                                    if ( ! empty( $categories ) ) {
+                                        ?>
+                                        <span class="publication-category-badge"><?php echo esc_html( $categories[0]->name ); ?></span>
+                                        <?php
+                                    }
+                                    ?>
+                                </div>
+                                <div class="text">
+                                    <div class="text-body">
+                                        <p class="publication-date"><?php echo esc_html( get_the_date() ); ?></p>
+                                        <h3><strong><?php the_title(); ?></strong></h3>
+                                        <a href="<?php the_permalink(); ?>" class="button-link">Read More &raquo;</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                    wp_reset_postdata();
+                } else {
+                    ?>
+                    <div class="cell">
+                        <p>No publications found in this category.</p>
+                    </div>
+                    <?php
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <?php if ( $total_pages > 1 ) { ?>
+        <nav aria-label="Publications Pagination" id="publications-pagination">
+            <ul class="pagination text-center">
+                <?php if ( $page > 1 ) { ?>
+                    <li class="pagination-previous">
+                        <a href="#" data-page="<?php echo absint( $page - 1 ); ?>">Previous</a>
+                    </li>
+                <?php } else { ?>
+                    <li class="pagination-previous disabled"><span>Previous</span></li>
+                <?php } ?>
+
+                <?php
+                // Build the set of page numbers to show:
+                // Always: first 2, last 2, current page and 1 neighbour each side
+                $show_pages = array();
+                for ( $i = 1; $i <= $total_pages; $i++ ) {
+                    if (
+                        $i <= 2 ||                          // First 2
+                        $i >= $total_pages - 1 ||           // Last 2
+                        ( $i >= $page - 1 && $i <= $page + 1 ) // Current ± 1
+                    ) {
+                        $show_pages[] = $i;
+                    }
+                }
+                $show_pages = array_unique( $show_pages );
+                sort( $show_pages );
+
+                $prev_shown = null;
+                foreach ( $show_pages as $i ) {
+                    // Insert ellipsis if there's a gap since the last shown page
+                    if ( $prev_shown !== null && $i > $prev_shown + 1 ) {
+                        ?>
+                        <li class="ellipsis"><span></span></li>
+                        <?php
+                    }
+
+                    if ( $i == $page ) {
+                        ?>
+                        <li class="current">
+                            <span class="show-for-sr">You're on page</span><?php echo absint( $i ); ?>
+                        </li>
+                        <?php
+                    } else {
+                        ?>
+                        <li>
+                            <a href="#" data-page="<?php echo absint( $i ); ?>" aria-label="Page <?php echo absint( $i ); ?>"><?php echo absint( $i ); ?></a>
+                        </li>
+                        <?php
+                    }
+
+                    $prev_shown = $i;
+                }
+                ?>
+
+                <?php if ( $page < $total_pages ) { ?>
+                    <li class="pagination-next">
+                        <a href="#" data-page="<?php echo absint( $page + 1 ); ?>">Next</a>
+                    </li>
+                <?php } else { ?>
+                    <li class="pagination-next disabled"><span>Next</span></li>
+                <?php } ?>
+            </ul>
+        </nav>
+    <?php } ?>
+
+    <?php
+    return ob_get_clean();
+}
+
+function ng_andersen_ajax_get_publications() {
+    check_ajax_referer( 'publications_nonce', 'nonce' );
+
+    $cat  = isset( $_POST['cat'] )  ? absint( $_POST['cat'] )  : 0;
+    $page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+
+    wp_send_json_success( array( 'html' => ng_andersen_publications_html( $cat, $page ) ) );
+}
+add_action( 'wp_ajax_ng_andersen_get_publications',        'ng_andersen_ajax_get_publications' );
+add_action( 'wp_ajax_nopriv_ng_andersen_get_publications', 'ng_andersen_ajax_get_publications' );
+
+
+// ============================================================
+// 11. FIX PAGINATION ON STATIC PAGE TEMPLATES
+// ============================================================
+
+add_filter( 'redirect_canonical', function( $redirect_url ) {
+    if ( is_page() && get_query_var( 'page' ) ) {
+        return false;
+    }
+    return $redirect_url;
+} );
+
+
+// ============================================================
+// 12. ANDERSEN ADMIN COLOR SCHEME
+// ============================================================
 
 add_action( 'admin_init', function() {
     wp_admin_css_color(
@@ -1037,11 +1152,102 @@ add_action( 'admin_init', function() {
         __( 'Andersen', 'ng-andersen' ),
         get_template_directory_uri() . '/assets/css/admin-color-scheme.css',
         array(
-            '#1d2327', // Primary color
-            '#2c3338', // Secondary color
-            '#2271b1', // Accent color
-            '#72aee6'  // Highlight color
+            '#1d2327',
+            '#2c3338',
+            '#2271b1',
+            '#72aee6',
         )
     );
 } );
- 
+
+
+require_once get_template_directory() . '/theme-settings.php';
+
+
+
+// ============================================================
+// 13. REGSITRATION OF CUSTOM POST META FIELDS
+// ============================================================
+
+// Post Meta Fields: Download Link & Release Date
+
+if ( ! function_exists( 'mytheme_register_post_fields_metabox' ) ) {
+    function mytheme_register_post_fields_metabox() {
+        add_meta_box(
+            'mytheme_post_fields',
+            'Post Fields',
+            'mytheme_render_post_fields_metabox',
+            'post',
+            'normal',
+            'default'
+        );
+    }
+    add_action( 'add_meta_boxes', 'mytheme_register_post_fields_metabox' );
+}
+
+if ( ! function_exists( 'mytheme_render_post_fields_metabox' ) ) {
+    function mytheme_render_post_fields_metabox( $post ) {
+        wp_nonce_field( 'mytheme_save_post_fields', 'mytheme_post_fields_nonce' );
+
+        $download_link = get_post_meta( $post->ID, 'download_link', true );
+        $release       = get_post_meta( $post->ID, 'release', true );
+        ?>
+        <table class="form-table">
+            <tr>
+                <th><label for="mytheme_download_link">Download Link</label></th>
+                <td>
+                    <input type="url"
+                           id="mytheme_download_link"
+                           name="mytheme_download_link"
+                           value="<?php echo esc_attr( $download_link ); ?>"
+                           class="regular-text"
+                           placeholder="https://">
+                    <p class="description">Full URL to the downloadable file or resource.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="mytheme_release">Release Date</label></th>
+                <td>
+                    <input type="date"
+                           id="mytheme_release"
+                           name="mytheme_release"
+                           value="<?php echo esc_attr( $release ); ?>">
+                    <p class="description">The release date of this content (YYYY-MM-DD).</p>
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+}
+
+if ( ! function_exists( 'mytheme_save_post_fields' ) ) {
+    function mytheme_save_post_fields( $post_id ) {
+        if (
+            ! isset( $_POST['mytheme_post_fields_nonce'] ) ||
+            ! wp_verify_nonce( $_POST['mytheme_post_fields_nonce'], 'mytheme_save_post_fields' ) ||
+            ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
+            ! current_user_can( 'edit_post', $post_id )
+        ) {
+            return;
+        }
+
+        if ( isset( $_POST['mytheme_download_link'] ) ) {
+            $download_link = esc_url_raw( trim( $_POST['mytheme_download_link'] ) );
+            if ( ! empty( $download_link ) ) {
+                update_post_meta( $post_id, 'download_link', $download_link );
+            } else {
+                delete_post_meta( $post_id, 'download_link' );
+            }
+        }
+
+        if ( isset( $_POST['mytheme_release'] ) ) {
+            $release = sanitize_text_field( trim( $_POST['mytheme_release'] ) );
+            if ( ! empty( $release ) && false !== DateTime::createFromFormat( 'Y-m-d', $release ) ) {
+                update_post_meta( $post_id, 'release', $release );
+            } elseif ( empty( $release ) ) {
+                delete_post_meta( $post_id, 'release' );
+            }
+        }
+    }
+    add_action( 'save_post', 'mytheme_save_post_fields' );
+}

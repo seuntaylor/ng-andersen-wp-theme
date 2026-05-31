@@ -10,6 +10,12 @@
  *
  * Sections:
  * 1. Dropdown Navigation Fix
+ * 2. Team Members Page
+ * 3. Single Team Member Page
+ * 4. Contact Page Office Information
+ * 5. Contact Form 7 Customisations
+ * 6. Home Page Post Meta Customisations
+ * 7. Publications Page
  */
 
 /* ============================================================
@@ -38,11 +44,10 @@
     border: none !important;
     box-shadow: .125rem .125rem .125rem 0 #a3aaae;
     padding-inline-start: 0;
-    
 }
 
 /* ============================================================
-   2. TEAM MEMBERS PAGE EFFECTS
+   2. TEAM MEMBERS PAGE
    ============================================================
 */
 
@@ -78,7 +83,7 @@
 }
 
 /* ============================================================
-   2A. SINGLE TEAM MEMBER PAGE EFFECTS
+   3. SINGLE TEAM MEMBER PAGE
    ============================================================
 */
 
@@ -107,9 +112,8 @@
     margin: 0 0 2px 0;
 }
 
-
 /* ============================================================
-   3. CONTACT PAGE OFFICE INFORMATION EFFECTS
+   4. CONTACT PAGE OFFICE INFORMATION
    ============================================================
 */
 
@@ -163,10 +167,10 @@
 }
 
 /* ============================================================
-   4. CONTACT FORM 7 CUSTOMISATIONS
+   5. CONTACT FORM 7 CUSTOMISATIONS
    ============================================================
 */
-/* CF7 Form Grid Spacing */
+
 .contact-form-wrapper .grid-x {
     margin-left: -10px;
     margin-right: -10px;
@@ -178,7 +182,6 @@
     padding-right: 10px;
 }
 
-/* Form fields styling */
 .contact-form-wrapper input[type="text"],
 .contact-form-wrapper input[type="email"],
 .contact-form-wrapper input[type="tel"],
@@ -187,19 +190,114 @@
     box-sizing: border-box;
 }
 
-/* Label spacing */
 .contact-form-wrapper label {
     display: block;
     margin-bottom: 5px;
 }
 
 /* ============================================================
-   5. HOME PAGE POST META CUSTOMISATIONS
+   6. HOME PAGE POST META CUSTOMISATIONS
    ============================================================
 */
+
 .section-blocks2 .item .text .text-body p.post-date {
     color: #707070;
     text-transform: capitalize;
     font-family: "Roboto", sans-serif;
+    font-weight: 400;
+}
+
+/* ============================================================
+   7. PUBLICATIONS PAGE
+   ============================================================
+*/
+
+/* Remove Foundation's blue active background */
+#publications-filter-nav .menu .is-active > a,
+#publications-filter-nav .menu .active > a {
+    background: transparent;
+}
+
+/* Active item — red text, no background */
+#publications-filter-nav ul.lvl-1 > li[aria-expanded=true] > a,
+#publications-filter-nav ul.lvl-1 > li.is-active > a {
+    color: #ab0e1e;
+    background: transparent;
+}
+
+/* Root level items — dark navy */
+#publications-filter-nav ul.lvl-1 > li > a {
+    color: #162d43;
+    font-weight: 600;
+    font-size: clamp(16px, 1.0416666667vw, 20px);
+}
+
+/* Category badge overlaid on post image — top right */
+.section-blocks16 .item .image {
+    position: relative;
+}
+
+.section-blocks16 .item .publication-category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #fff;
+    color: #162d43;
+    font-family: "Work Sans", sans-serif;
+    font-size: clamp(12px, 0.7291666667vw, 14px);
+    font-weight: 400;
+    padding: 4px 10px;
+    z-index: 3;
+    line-height: 1.4;
+}
+
+/* Post date */
+.section-blocks16 .item .text-body .publication-date {
+    font-family: "Work Sans", sans-serif;
+    font-size: clamp(12px, 0.7291666667vw, 14px);
+    font-weight: 400;
+    color: #707070;
+    margin-bottom: 6px;
+}
+
+/* Post title — bold, same size as original card text */
+.section-blocks16 .item .text-body h3 {
+    font-size: clamp(18px, 1.1458333333vw, 22px);
+    font-weight: 700;
+    color: #303e60;
+    margin: 0 0 .7em;
+    font-family: "Work Sans", sans-serif;
+}
+
+/* ============================================================
+   7b. PUBLICATIONS SIDEBAR FIX
+   ============================================================
+*/
+
+/* Remove Foundation's blue active background */
+#publications-filter-nav .menu .is-active > a,
+#publications-filter-nav .menu .active > a {
+    background: transparent;
+}
+
+/* Active item — red text */
+#publications-filter-nav ul.lvl-1 > li[aria-expanded=true] > a,
+#publications-filter-nav ul.lvl-1 > li.is-active > a {
+    color: #ab0e1e;
+    background: transparent;
+}
+
+/* Root level items — dark navy */
+#publications-filter-nav ul.lvl-1 > li > a {
+    color: #162d43;
+    font-weight: 600;
+    font-size: clamp(16px, 1.0416666667vw, 20px);
+}
+
+/* Category count next to label */
+.cat-count {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-left: 4px;
     font-weight: 400;
 }
