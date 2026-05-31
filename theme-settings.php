@@ -74,6 +74,33 @@ add_action( 'admin_init', function() {
     
     register_setting( 'ng-andersen-settings', 'ng_andersen_turnstile_site_key' );
     register_setting( 'ng-andersen-settings', 'ng_andersen_turnstile_secret_key' );
+
+    // ============================================================
+    // SINGLE POST SIDEBAR
+    // ============================================================
+
+    register_setting( 'ng-andersen-settings', 'ng_andersen_single_widget_title' );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_single_widget_cats', array(
+        'sanitize_callback' => function( $value ) {
+            if ( ! is_array( $value ) ) {
+                return array();
+            }
+            return array_map( 'absint', $value );
+        },
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_single_widget_count' );
+
+    // Resources widget
+    register_setting( 'ng-andersen-settings', 'ng_andersen_resources_widget_title' );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_resources_widget_cats', array(
+        'sanitize_callback' => function( $value ) {
+            if ( ! is_array( $value ) ) {
+                return array();
+            }
+            return array_map( 'absint', $value );
+        },
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_resources_widget_count' );
 } );
 
 /**
@@ -104,6 +131,9 @@ function ng_andersen_render_settings_page() {
             </a>
             <a href="?page=ng-andersen-settings&tab=captcha" class="nav-tab <?php echo $active_tab === 'captcha' ? 'nav-tab-active' : ''; ?>">
                 CAPTCHA API Keys
+            </a>
+            <a href="?page=ng-andersen-settings&tab=single-post" class="nav-tab <?php echo $active_tab === 'single-post' ? 'nav-tab-active' : ''; ?>">
+                Single Post
             </a>
         </nav>
 
@@ -145,6 +175,14 @@ function ng_andersen_render_settings_page() {
                 <p>Configure Cloudflare Turnstile API keys for form protection.</p>
 
                 <?php ng_andersen_render_captcha_section(); ?>
+            </div>
+
+            <!-- SINGLE POST TAB -->
+            <div class="tab-content" <?php echo $active_tab !== 'single-post' ? 'style="display:none;"' : ''; ?>>
+                <h2>Single Post Sidebar</h2>
+                <p>Configure the related posts widget that appears in the right column of every single post page.</p>
+
+                <?php ng_andersen_render_single_post_section(); ?>
             </div>
 
             <?php submit_button(); ?>
@@ -511,5 +549,189 @@ function ng_andersen_get_ga_settings() {
     return array(
         'enabled'      => get_option( 'ng_andersen_ga_enabled' ),
         'tracking_id'  => get_option( 'ng_andersen_ga_tracking_id' ),
+    );
+}
+
+/**
+ * Render single post sidebar section
+ */
+function ng_andersen_render_single_post_section() {
+    $widget_title = get_option( 'ng_andersen_single_widget_title', 'You May Also Like' );
+    $widget_count = get_option( 'ng_andersen_single_widget_count', 3 );
+
+    $resources_title = get_option( 'ng_andersen_resources_widget_title', 'Insights & Resources' );
+    $resources_count = get_option( 'ng_andersen_resources_widget_count', 3 );
+
+    // Get saved checkbox selections
+    $saved_widget_cats = get_option( 'ng_andersen_single_widget_cats', array() );
+    if ( ! is_array( $saved_widget_cats ) ) {
+        $saved_widget_cats = array();
+    }
+
+    $saved_resources_cats = get_option( 'ng_andersen_resources_widget_cats', array() );
+    if ( ! is_array( $saved_resources_cats ) ) {
+        $saved_resources_cats = array();
+    }
+
+    // Get all categories for the checkboxes
+    $categories = get_categories( array(
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+        'hide_empty' => true,
+    ) );
+    ?>
+
+    <!-- Related Posts Widget (widget--news) -->
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+        <h3>Related Posts Widget</h3>
+        <p style="color: #666; font-size: 13px;">Displays post cards with image and title. Uses the <code>widget--news</code> style. Posts are picked randomly from the selected categories.</p>
+
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="ng_andersen_single_widget_title">Widget Headline</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_single_widget_title"
+                        name="ng_andersen_single_widget_title"
+                        value="<?php echo esc_attr( $widget_title ); ?>"
+                        placeholder="e.g., You May Also Like"
+                        style="width: 100%; max-width: 400px; padding: 8px;"
+                    >
+                    <p class="description">Heading displayed above the related posts widget.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Source Categories</th>
+                <td>
+                    <?php foreach ( $categories as $cat ) { ?>
+                        <label style="display: block; margin-bottom: 6px;">
+                            <input
+                                type="checkbox"
+                                name="ng_andersen_single_widget_cats[]"
+                                value="<?php echo absint( $cat->term_id ); ?>"
+                                <?php echo in_array( $cat->term_id, $saved_widget_cats ) ? 'checked' : ''; ?>
+                                style="margin-right: 6px;"
+                            >
+                            <?php echo esc_html( $cat->name ); ?>
+                            <span style="color: #999; font-size: 12px;">(<?php echo absint( $cat->count ); ?>)</span>
+                        </label>
+                    <?php } ?>
+                    <p class="description">Posts will be picked randomly from all selected categories.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="ng_andersen_single_widget_count">Number of Posts</label>
+                </th>
+                <td>
+                    <input
+                        type="number"
+                        id="ng_andersen_single_widget_count"
+                        name="ng_andersen_single_widget_count"
+                        value="<?php echo absint( $widget_count ); ?>"
+                        min="1"
+                        max="6"
+                        style="width: 80px; padding: 8px;"
+                    >
+                    <p class="description">How many posts to display (1–6).</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Resources Widget (widget--resources) -->
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #46b450; border-radius: 4px;">
+        <h3>Resources Widget</h3>
+        <p style="color: #666; font-size: 13px;">Displays a text list with category label and linked title. Uses the <code>widget--resources</code> style. Posts are picked randomly from the selected categories.</p>
+
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="ng_andersen_resources_widget_title">Widget Headline</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_resources_widget_title"
+                        name="ng_andersen_resources_widget_title"
+                        value="<?php echo esc_attr( $resources_title ); ?>"
+                        placeholder="e.g., Insights & Resources"
+                        style="width: 100%; max-width: 400px; padding: 8px;"
+                    >
+                    <p class="description">Heading displayed above the resources widget.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Source Categories</th>
+                <td>
+                    <?php
+                    foreach ( $categories as $cat ) {
+                        $checked = in_array( $cat->term_id, $saved_resources_cats ) ? 'checked' : '';
+                        ?>
+                        <label style="display: block; margin-bottom: 6px;">
+                            <input
+                                type="checkbox"
+                                name="ng_andersen_resources_widget_cats[]"
+                                value="<?php echo absint( $cat->term_id ); ?>"
+                                <?php echo $checked; ?>
+                                style="margin-right: 6px;"
+                            >
+                            <?php echo esc_html( $cat->name ); ?>
+                            <span style="color: #999; font-size: 12px;">(<?php echo absint( $cat->count ); ?>)</span>
+                        </label>
+                        <?php
+                    }
+                    ?>
+                    <p class="description">Posts will be picked randomly from all selected categories.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="ng_andersen_resources_widget_count">Number of Posts</label>
+                </th>
+                <td>
+                    <input
+                        type="number"
+                        id="ng_andersen_resources_widget_count"
+                        name="ng_andersen_resources_widget_count"
+                        value="<?php echo absint( $resources_count ); ?>"
+                        min="2"
+                        max="6"
+                        style="width: 80px; padding: 8px;"
+                    >
+                    <p class="description">How many posts to display (2–6).</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <?php
+}
+
+/**
+ * Helper function to retrieve single post sidebar settings
+ * Usage: $settings = ng_andersen_get_single_post_settings();
+ */
+function ng_andersen_get_single_post_settings() {
+    $widget_cats = get_option( 'ng_andersen_single_widget_cats', array() );
+    if ( ! is_array( $widget_cats ) ) {
+        $widget_cats = array();
+    }
+
+    $resources_cats = get_option( 'ng_andersen_resources_widget_cats', array() );
+    if ( ! is_array( $resources_cats ) ) {
+        $resources_cats = array();
+    }
+
+    return array(
+        'widget_title'      => get_option( 'ng_andersen_single_widget_title', 'You May Also Like' ),
+        'widget_cats'       => array_map( 'absint', $widget_cats ),
+        'widget_count'      => absint( get_option( 'ng_andersen_single_widget_count', 3 ) ),
+        'resources_title'   => get_option( 'ng_andersen_resources_widget_title', 'Insights & Resources' ),
+        'resources_cats'    => array_map( 'absint', $resources_cats ),
+        'resources_count'   => absint( get_option( 'ng_andersen_resources_widget_count', 3 ) ),
     );
 }

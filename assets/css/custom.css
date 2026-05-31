@@ -16,6 +16,7 @@
  * 5. Contact Form 7 Customisations
  * 6. Home Page Post Meta Customisations
  * 7. Publications Page
+ * 8. Single Post Sidebar Widgets
  */
 
 /* ============================================================
@@ -232,6 +233,24 @@
     font-size: clamp(16px, 1.0416666667vw, 20px);
 }
 
+/* Rotate triangle when accordion is open */
+#publications-filter-nav ul.lvl-1 > li.is-active > a::after {
+    transform: rotate(90deg);
+}
+
+/* Hide triangle on category sub-items */
+#publications-filter-nav .lvl-2 li a::after {
+    display: none;
+}
+
+/* Category count next to sidebar label */
+.cat-count {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-left: 4px;
+    font-weight: 400;
+}
+
 /* Category badge overlaid on post image — top right */
 .section-blocks16 .item .image {
     position: relative;
@@ -260,7 +279,7 @@
     margin-bottom: 6px;
 }
 
-/* Post title — bold, same size as original card text */
+/* Post title */
 .section-blocks16 .item .text-body h3 {
     font-size: clamp(18px, 1.1458333333vw, 22px);
     font-weight: 700;
@@ -270,34 +289,50 @@
 }
 
 /* ============================================================
-   7b. PUBLICATIONS SIDEBAR FIX
+   8. SINGLE POST SIDEBAR WIDGETS
    ============================================================
 */
 
-/* Remove Foundation's blue active background */
-#publications-filter-nav .menu .is-active > a,
-#publications-filter-nav .menu .active > a {
-    background: transparent;
+/* Resources widget — h4 label with icon */
+.widget--resources .item h4 {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0 0 6px 0;
 }
 
-/* Active item — red text */
-#publications-filter-nav ul.lvl-1 > li[aria-expanded=true] > a,
-#publications-filter-nav ul.lvl-1 > li.is-active > a {
-    color: #ab0e1e;
-    background: transparent;
+/* Remove ::before pseudo-element indentation from app.css */
+.widget--resources .item h4::before {
+    display: none;
 }
 
-/* Root level items — dark navy */
-#publications-filter-nav ul.lvl-1 > li > a {
-    color: #162d43;
-    font-weight: 600;
-    font-size: clamp(16px, 1.0416666667vw, 20px);
+/* Font Awesome icon */
+.widget--resources .item h4 .fa-file-lines {
+    margin-right: 8px;
+    color: #666;
+    font-size: 1.3em;
+    flex-shrink: 0;
 }
 
-/* Category count next to label */
-.cat-count {
-    font-size: 12px;
-    opacity: 0.6;
-    margin-left: 4px;
-    font-weight: 400;
+/* Resources widget — item spacing */
+.widget--resources .item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.widget--resources .item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Override app.css margin-top between items */
+.main-column-sidebar .widget--resources .item + .item {
+    margin-top: 0;
+}
+
+/* Remove default paragraph margin inside items */
+.widget--resources .item p {
+    margin: 0;
 }

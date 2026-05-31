@@ -25,10 +25,27 @@
         },
 
         bindEvents: function() {
-            // Category filter clicks
-            $(document).on('click', '#publications-filter-nav a', function(e) {
+            // Top-level "Publications" link — reset filter to show all posts
+            $(document).on('click', '#publications-filter-nav > ul > li > a', function(e) {
                 e.preventDefault();
-                const cat  = $(this).data('cat');
+                const $topItem = $(this).parent();
+
+                // Toggle accordion open/close
+                $topItem.toggleClass('is-active');
+                $topItem.find('.lvl-2').toggleClass('is-active');
+
+                // Rotate triangle indicator
+                $(this).toggleClass('accordion-open');
+
+                // Reset filter to all posts
+                Publications.setActiveCategory( 0 );
+                Publications.fetchPosts( 0, 1, true );
+            });
+
+            // Category filter clicks — inside the lvl-2 submenu
+            $(document).on('click', '#publications-filter-nav .lvl-2 a', function(e) {
+                e.preventDefault();
+                const cat = $(this).data('cat');
                 Publications.setActiveCategory( cat );
                 Publications.fetchPosts( cat, 1, true );
             });
@@ -43,13 +60,15 @@
         },
 
         getCurrentCat: function() {
-            const $active = $('#publications-filter-nav .is-active a');
+            const $active = $('#publications-filter-nav .lvl-2 .is-active a');
             return $active.length ? parseInt( $active.data('cat') ) || 0 : 0;
         },
 
         setActiveCategory: function( cat ) {
-            $('#publications-filter-nav li').removeClass('is-active');
-            $('#publications-filter-nav a[data-cat="' + cat + '"]').parent().addClass('is-active');
+            $('#publications-filter-nav .lvl-2 li').removeClass('is-active');
+            if ( cat > 0 ) {
+                $('#publications-filter-nav .lvl-2 a[data-cat="' + cat + '"]').parent().addClass('is-active');
+            }
         },
 
         fetchPosts: function( cat, page, pushState ) {

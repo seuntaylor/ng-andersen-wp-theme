@@ -1027,7 +1027,7 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
                                 <div class="text">
                                     <div class="text-body">
                                         <p class="publication-date"><?php echo esc_html( get_the_date() ); ?></p>
-                                        <h3><strong><?php the_title(); ?></strong></h3>
+                                        <h3><?php the_title(); ?></h3>
                                         <a href="<?php the_permalink(); ?>" class="button-link">Read More &raquo;</a>
                                     </div>
                                 </div>
@@ -1161,93 +1161,91 @@ add_action( 'admin_init', function() {
 } );
 
 
+// ============================================================
+// 13. CUSTOM POST META FIELDS
+// ============================================================
+
+function ng_andersen_register_post_meta_box() {
+    add_meta_box(
+        'ng_andersen_post_fields',
+        'Post Fields',
+        'ng_andersen_render_post_meta_box',
+        'post',
+        'normal',
+        'default'
+    );
+}
+add_action( 'add_meta_boxes', 'ng_andersen_register_post_meta_box' );
+
+
+function ng_andersen_render_post_meta_box( $post ) {
+    wp_nonce_field( 'ng_andersen_save_post_meta', 'ng_andersen_post_meta_nonce' );
+
+    $download_link = get_post_meta( $post->ID, 'download_link', true );
+    $release_date  = get_post_meta( $post->ID, 'release', true );
+    ?>
+    <table class="form-table">
+        <tr>
+            <th><label for="ng_andersen_download_link">Download Link</label></th>
+            <td>
+                <input
+                    type="url"
+                    id="ng_andersen_download_link"
+                    name="ng_andersen_download_link"
+                    value="<?php echo esc_attr( $download_link ); ?>"
+                    class="regular-text"
+                    placeholder="https://"
+                >
+                <p class="description">Full URL to the downloadable file or resource.</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="ng_andersen_release_date">Release Date</label></th>
+            <td>
+                <input
+                    type="date"
+                    id="ng_andersen_release_date"
+                    name="ng_andersen_release_date"
+                    value="<?php echo esc_attr( $release_date ); ?>"
+                >
+                <p class="description">The release date of this content (YYYY-MM-DD).</p>
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+
+function ng_andersen_save_post_meta( $post_id ) {
+    if (
+        ! isset( $_POST['ng_andersen_post_meta_nonce'] ) ||
+        ! wp_verify_nonce( $_POST['ng_andersen_post_meta_nonce'], 'ng_andersen_save_post_meta' ) ||
+        ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
+        ! current_user_can( 'edit_post', $post_id )
+    ) {
+        return;
+    }
+
+    // Save download link
+    if ( isset( $_POST['ng_andersen_download_link'] ) ) {
+        $download_link = esc_url_raw( trim( $_POST['ng_andersen_download_link'] ) );
+        if ( ! empty( $download_link ) ) {
+            update_post_meta( $post_id, 'download_link', $download_link );
+        } else {
+            delete_post_meta( $post_id, 'download_link' );
+        }
+    }
+
+    // Save release date — validate format before saving
+    if ( isset( $_POST['ng_andersen_release_date'] ) ) {
+        $release_date = sanitize_text_field( trim( $_POST['ng_andersen_release_date'] ) );
+        if ( ! empty( $release_date ) && false !== DateTime::createFromFormat( 'Y-m-d', $release_date ) ) {
+            update_post_meta( $post_id, 'release', $release_date );
+        } elseif ( empty( $release_date ) ) {
+            delete_post_meta( $post_id, 'release' );
+        }
+    }
+}
+add_action( 'save_post', 'ng_andersen_save_post_meta' );
+
 require_once get_template_directory() . '/theme-settings.php';
-
-
-
-// ============================================================
-// 13. REGSITRATION OF CUSTOM POST META FIELDS
-// ============================================================
-
-// Post Meta Fields: Download Link & Release Date
-
-if ( ! function_exists( 'mytheme_register_post_fields_metabox' ) ) {
-    function mytheme_register_post_fields_metabox() {
-        add_meta_box(
-            'mytheme_post_fields',
-            'Post Fields',
-            'mytheme_render_post_fields_metabox',
-            'post',
-            'normal',
-            'default'
-        );
-    }
-    add_action( 'add_meta_boxes', 'mytheme_register_post_fields_metabox' );
-}
-
-if ( ! function_exists( 'mytheme_render_post_fields_metabox' ) ) {
-    function mytheme_render_post_fields_metabox( $post ) {
-        wp_nonce_field( 'mytheme_save_post_fields', 'mytheme_post_fields_nonce' );
-
-        $download_link = get_post_meta( $post->ID, 'download_link', true );
-        $release       = get_post_meta( $post->ID, 'release', true );
-        ?>
-        <table class="form-table">
-            <tr>
-                <th><label for="mytheme_download_link">Download Link</label></th>
-                <td>
-                    <input type="url"
-                           id="mytheme_download_link"
-                           name="mytheme_download_link"
-                           value="<?php echo esc_attr( $download_link ); ?>"
-                           class="regular-text"
-                           placeholder="https://">
-                    <p class="description">Full URL to the downloadable file or resource.</p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="mytheme_release">Release Date</label></th>
-                <td>
-                    <input type="date"
-                           id="mytheme_release"
-                           name="mytheme_release"
-                           value="<?php echo esc_attr( $release ); ?>">
-                    <p class="description">The release date of this content (YYYY-MM-DD).</p>
-                </td>
-            </tr>
-        </table>
-        <?php
-    }
-}
-
-if ( ! function_exists( 'mytheme_save_post_fields' ) ) {
-    function mytheme_save_post_fields( $post_id ) {
-        if (
-            ! isset( $_POST['mytheme_post_fields_nonce'] ) ||
-            ! wp_verify_nonce( $_POST['mytheme_post_fields_nonce'], 'mytheme_save_post_fields' ) ||
-            ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
-            ! current_user_can( 'edit_post', $post_id )
-        ) {
-            return;
-        }
-
-        if ( isset( $_POST['mytheme_download_link'] ) ) {
-            $download_link = esc_url_raw( trim( $_POST['mytheme_download_link'] ) );
-            if ( ! empty( $download_link ) ) {
-                update_post_meta( $post_id, 'download_link', $download_link );
-            } else {
-                delete_post_meta( $post_id, 'download_link' );
-            }
-        }
-
-        if ( isset( $_POST['mytheme_release'] ) ) {
-            $release = sanitize_text_field( trim( $_POST['mytheme_release'] ) );
-            if ( ! empty( $release ) && false !== DateTime::createFromFormat( 'Y-m-d', $release ) ) {
-                update_post_meta( $post_id, 'release', $release );
-            } elseif ( empty( $release ) ) {
-                delete_post_meta( $post_id, 'release' );
-            }
-        }
-    }
-    add_action( 'save_post', 'mytheme_save_post_fields' );
-}

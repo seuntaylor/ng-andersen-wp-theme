@@ -47,23 +47,25 @@ $categories = get_categories( array(
     <div class="container">
         <div class="grid-x grid-main">
 
-            <!-- Sidebar: Dynamic Category Filter -->
+            <!-- Sidebar: Accordion Category Filter -->
             <div class="sidebar cell large-3">
                 <nav id="publications-filter-nav">
                     <ul class="lvl-1 vertical menu accordion-menu" data-accordion-menu>
-                        <li class="<?php echo $current_cat === 0 ? 'is-active' : ''; ?>">
+                        <li class="is-active">
                             <a href="<?php echo esc_url( get_permalink() ); ?>" data-cat="0">
-                                All Publications
+                                Publications
                             </a>
+                            <ul class="lvl-2 vertical nested is-active">
+                                <?php foreach ( $categories as $cat ) { ?>
+                                    <li class="<?php echo $current_cat === $cat->term_id ? 'is-active' : ''; ?>">
+                                        <a href="<?php echo esc_url( add_query_arg( 'publication_cat', $cat->term_id, get_permalink() ) ); ?>" data-cat="<?php echo absint( $cat->term_id ); ?>">
+                                            <?php echo esc_html( $cat->name ); ?>
+                                            <span class="cat-count">(<?php echo absint( $cat->count ); ?>)</span>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                            </ul>
                         </li>
-                        <?php foreach ( $categories as $cat ) { ?>
-                            <li class="<?php echo $current_cat === $cat->term_id ? 'is-active' : ''; ?>">
-                                <a href="<?php echo esc_url( add_query_arg( 'publication_cat', $cat->term_id, get_permalink() ) ); ?>" data-cat="<?php echo absint( $cat->term_id ); ?>">
-                                    <?php echo esc_html( $cat->name ); ?>
-                                    <span class="cat-count">(<?php echo absint( $cat->count ); ?>)</span>
-                                </a>
-                            </li>
-                        <?php } ?>
                     </ul>
                 </nav>
             </div>
