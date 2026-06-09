@@ -150,8 +150,8 @@ function theme_enqueue_assets() {
         ) );
     }
 
-    // Publications script — only on publications page
-    if ( is_page_template( 'templates/page-publications.php' ) ) {
+    // Publications script — loaded on both publication template variants
+    if ( is_page_template( 'templates/page-publications.php' ) || is_page_template( 'templates/page-publications-dd.php' ) ) {
         wp_enqueue_script(
             'publications-js',
             get_template_directory_uri() . '/assets/js/publications.js',
@@ -163,7 +163,7 @@ function theme_enqueue_assets() {
         wp_localize_script( 'publications-js', 'publicationsData', array(
             'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
             'nonce'   => wp_create_nonce( 'publications_nonce' ),
-            'pageUrl' => esc_url( get_permalink( get_option( 'page_for_posts' ) ) ),
+            'pageUrl' => esc_url( get_the_permalink( get_the_ID() ) ),
         ) );
     }
 }
@@ -966,7 +966,7 @@ add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_
 // 10. AJAX: PUBLICATIONS
 // ============================================================
 
-function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
+function ng_andersen_publications_html( $cat = 0, $page = 1, $search = '' ) {
     $query_args = array(
         'post_type'      => 'post',
         'posts_per_page' => 12,
@@ -984,6 +984,12 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
                 'terms'    => $cat,
             ),
         );
+    }
+
+    // Title-only search — avoids full content search for performance
+    if ( ! empty( $search ) ) {
+        $query_args['search_columns'] = array( 'post_title' );
+        $query_args['s']              = $search;
     }
 
     $publications = new WP_Query( $query_args );
@@ -1121,10 +1127,11 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
 function ng_andersen_ajax_get_publications() {
     check_ajax_referer( 'publications_nonce', 'nonce' );
 
-    $cat  = isset( $_POST['cat'] )  ? absint( $_POST['cat'] )  : 0;
-    $page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+    $cat    = isset( $_POST['cat'] )    ? absint( $_POST['cat'] )                        : 0;
+    $page   = isset( $_POST['page'] )   ? absint( $_POST['page'] )                       : 1;
+    $search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] )        : '';
 
-    wp_send_json_success( array( 'html' => ng_andersen_publications_html( $cat, $page ) ) );
+    wp_send_json_success( array( 'html' => ng_andersen_publications_html( $cat, $page, $search ) ) );
 }
 add_action( 'wp_ajax_ng_andersen_get_publications',        'ng_andersen_ajax_get_publications' );
 add_action( 'wp_ajax_nopriv_ng_andersen_get_publications', 'ng_andersen_ajax_get_publications' );
@@ -1160,92 +1167,5 @@ add_action( 'admin_init', function() {
     );
 } );
 
-
-// ============================================================
-// 13. CUSTOM POST META FIELDS
-// ============================================================
-
-function ng_andersen_register_post_meta_box() {
-    add_meta_box(
-        'ng_andersen_post_fields',
-        'Post Fields',
-        'ng_andersen_render_post_meta_box',
-        'post',
-        'normal',
-        'default'
-    );
-}
-add_action( 'add_meta_boxes', 'ng_andersen_register_post_meta_box' );
-
-
-function ng_andersen_render_post_meta_box( $post ) {
-    wp_nonce_field( 'ng_andersen_save_post_meta', 'ng_andersen_post_meta_nonce' );
-
-    $download_link = get_post_meta( $post->ID, 'download_link', true );
-    $release_date  = get_post_meta( $post->ID, 'release', true );
-    ?>
-    <table class="form-table">
-        <tr>
-            <th><label for="ng_andersen_download_link">Download Link</label></th>
-            <td>
-                <input
-                    type="url"
-                    id="ng_andersen_download_link"
-                    name="ng_andersen_download_link"
-                    value="<?php echo esc_attr( $download_link ); ?>"
-                    class="regular-text"
-                    placeholder="https://"
-                >
-                <p class="description">Full URL to the downloadable file or resource.</p>
-            </td>
-        </tr>
-        <tr>
-            <th><label for="ng_andersen_release_date">Release Date</label></th>
-            <td>
-                <input
-                    type="date"
-                    id="ng_andersen_release_date"
-                    name="ng_andersen_release_date"
-                    value="<?php echo esc_attr( $release_date ); ?>"
-                >
-                <p class="description">The release date of this content (YYYY-MM-DD).</p>
-            </td>
-        </tr>
-    </table>
-    <?php
-}
-
-
-function ng_andersen_save_post_meta( $post_id ) {
-    if (
-        ! isset( $_POST['ng_andersen_post_meta_nonce'] ) ||
-        ! wp_verify_nonce( $_POST['ng_andersen_post_meta_nonce'], 'ng_andersen_save_post_meta' ) ||
-        ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
-        ! current_user_can( 'edit_post', $post_id )
-    ) {
-        return;
-    }
-
-    // Save download link
-    if ( isset( $_POST['ng_andersen_download_link'] ) ) {
-        $download_link = esc_url_raw( trim( $_POST['ng_andersen_download_link'] ) );
-        if ( ! empty( $download_link ) ) {
-            update_post_meta( $post_id, 'download_link', $download_link );
-        } else {
-            delete_post_meta( $post_id, 'download_link' );
-        }
-    }
-
-    // Save release date — validate format before saving
-    if ( isset( $_POST['ng_andersen_release_date'] ) ) {
-        $release_date = sanitize_text_field( trim( $_POST['ng_andersen_release_date'] ) );
-        if ( ! empty( $release_date ) && false !== DateTime::createFromFormat( 'Y-m-d', $release_date ) ) {
-            update_post_meta( $post_id, 'release', $release_date );
-        } elseif ( empty( $release_date ) ) {
-            delete_post_meta( $post_id, 'release' );
-        }
-    }
-}
-add_action( 'save_post', 'ng_andersen_save_post_meta' );
 
 require_once get_template_directory() . '/theme-settings.php';
