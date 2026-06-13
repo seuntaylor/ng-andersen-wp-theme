@@ -134,9 +134,9 @@ get_header();
                                                         ?>
                                                         <div class="item">
                                                             <div class="image">
-                                                                <span class="img-bg">
+                                                                <a href="<?php the_permalink(); ?>" class="img-bg">
                                                                     <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                                                </span>
+                                                                </a>
                                                             </div>
                                                             <div class="text">
                                                                 <div class="text-body">

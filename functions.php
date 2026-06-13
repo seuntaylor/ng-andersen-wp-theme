@@ -1009,9 +1009,9 @@ function ng_andersen_publications_html( $cat = 0, $page = 1, $search = '' ) {
                         <div class="cell medium-6 large-4">
                             <div class="item">
                                 <div class="image">
-                                    <span class="img-bg">
+                                    <a href="<?php the_permalink(); ?>" class="img-bg">
                                         <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                    </span>
+                                    </a>
                                     <?php
                                     // Category badge overlaid on image
                                     $categories = get_the_category();

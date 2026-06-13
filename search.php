@@ -48,7 +48,7 @@ $search_term   = get_search_query();
                     <div class="cell large-3 medium-6">
                         <div class="item">
                             <div class="image">
-                                <span class="img-bg">
+                                <a href="<?php the_permalink(); ?>" class="img-bg">
                                     <?php if ( 'post' === get_post_type() ) { ?>
                                         <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                                     <?php } elseif ( has_post_thumbnail() ) { ?>
@@ -56,7 +56,7 @@ $search_term   = get_search_query();
                                     <?php } else { ?>
                                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                                     <?php } ?>
-                                </span>
+                                </a>
                             </div>
                             <div class="text">
                                 <div class="text-body">
