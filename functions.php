@@ -34,8 +34,11 @@ function theme_setup() {
 
     // Register navigation menus
     register_nav_menus( array(
-        'primary'   => __( 'Primary Navigation', 'ng-andersen' ),
-        'secondary' => __( 'Secondary Navigation', 'ng-andersen' ),
+        'primary'        => __( 'Primary Navigation', 'ng-andersen' ),
+        'secondary'      => __( 'Secondary Navigation', 'ng-andersen' ),
+        'footer-col-1'   => __( 'Footer Column 1', 'ng-andersen' ),
+        'footer-col-2'   => __( 'Footer Column 2', 'ng-andersen' ),
+        'footer-col-3'   => __( 'Footer Column 3', 'ng-andersen' ),
     ) );
 }
 add_action( 'after_setup_theme', 'theme_setup' );
@@ -187,35 +190,49 @@ add_filter( 'wp_resource_hints', 'theme_preconnect_hints', 10, 2 );
 // ============================================================
 // 4. WIDGET AREAS
 // ============================================================
+// Footer columns are now handled by nav menu locations
+// (footer-col-1, footer-col-2, footer-col-3) registered in theme_setup().
+// No widget areas are currently registered.
 
-function theme_register_widget_areas() {
-    $footer_columns = array(
-        array(
-            'name' => __( 'Footer Column 1', 'ng-andersen' ),
-            'id'   => 'footer-column-1',
-        ),
-        array(
-            'name' => __( 'Footer Column 2', 'ng-andersen' ),
-            'id'   => 'footer-column-2',
-        ),
-        array(
-            'name' => __( 'Footer Column 3', 'ng-andersen' ),
-            'id'   => 'footer-column-3',
-        ),
-    );
+/**
+ * Render a footer column from a registered nav menu location.
+ *
+ * Outputs a <nav> cell with the menu's NAME as an <h5> heading, followed
+ * by the menu's links. Renders nothing if no menu is assigned to the location.
+ *
+ * @param string $location  The nav menu location slug (e.g. 'footer-col-1').
+ * @param bool   $two_cols  Whether to apply the 'menu-2cols' class (splits into 2).
+ */
+function ng_andersen_footer_menu_column( $location, $two_cols = false ) {
+    $locations = get_nav_menu_locations();
 
-    foreach ( $footer_columns as $column ) {
-        register_sidebar( array(
-            'name'          => $column['name'],
-            'id'            => $column['id'],
-            'before_widget' => '<div class="footer-widget %2$s">',
-            'after_widget'  => '</div>',
-            'before_title'  => '<h5>',
-            'after_title'   => '</h5>',
-        ) );
+    // Nothing assigned to this location — render nothing
+    if ( empty( $locations[ $location ] ) ) {
+        return;
     }
+
+    $menu_obj = wp_get_nav_menu_object( $locations[ $location ] );
+    if ( ! $menu_obj ) {
+        return;
+    }
+
+    $heading   = $menu_obj->name;
+    $ul_class  = $two_cols ? 'menu-2cols' : '';
+    ?>
+    <nav class="cell large-3 medium-4 small-12">
+        <h5><?php echo esc_html( $heading ); ?></h5>
+        <?php
+        wp_nav_menu( array(
+            'theme_location' => $location,
+            'container'      => false,
+            'menu_class'     => $ul_class,
+            'depth'          => 1,
+            'fallback_cb'    => false,
+        ) );
+        ?>
+    </nav>
+    <?php
 }
-add_action( 'widgets_init', 'theme_register_widget_areas' );
 
 
 // ============================================================
