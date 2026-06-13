@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Publications (Dropdown)
+ * Template Name: Publications
  * Description: Publications with search + category dropdown filter sidebar
  *
  * @package ng-andersen

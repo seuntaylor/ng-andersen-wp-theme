@@ -52,15 +52,7 @@
                         <div class="item">
                             <a href="<?php the_permalink(); ?>" class="image">
                                 <span class="img-bg">
-                                    <?php
-                                    if ( has_post_thumbnail() ) {
-                                        the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
-                                    } else {
-                                        ?>
-                                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block5.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                        <?php
-                                    }
-                                    ?>
+                                    <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                                 </span>
                             </a>
                             <div class="text">

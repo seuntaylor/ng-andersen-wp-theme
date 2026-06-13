@@ -52,12 +52,12 @@ ng-andersen/
 │   ├── home/                        (homepage section partials)
 │   │   └── blocks2.php              (latest posts section - dynamic)
 │   └── page/
-├── templates/
-│   ├── page-team.php                (Team Members listing page)
-│   ├── page-locations.php           (Locations map page)
-│   ├── page-global-presence.php     (Global Presence page)
+├── templates/                       (all custom page templates use template-{name}.php)
+│   ├── template-teams.php           (Team Members listing page)
+│   ├── template-locations.php       (Locations map page)
+│   ├── template-global-presence.php (Global Presence page)
 │   ├── template-contact.php         (Contact page - offices + CF7 form)
-│   └── page-publications.php        (Publications listing - AJAX filter + pagination)
+│   └── template-publications.php    (Publications listing - search + category dropdown, AJAX)
 ├── functions.php                    (main theme functions)
 ├── theme-settings.php               (custom admin settings page)
 ├── header.php
@@ -67,6 +67,8 @@ ng-andersen/
 ├── page.php
 ├── single.php                       (default single post template)
 ├── single-team_member.php           (CPT single template - note underscore)
+├── search.php                       (search results - 4-col card grid, 12 per page)
+├── 404.php                          (full-width, no sidebar, search + home button)
 ├── searchform.php
 ├── style.css
 └── CLAUDE.md
@@ -126,7 +128,8 @@ Accessible via **WordPress Admin > NG Andersen**. Defined in `theme-settings.php
 4. **CAPTCHA API Keys** — Cloudflare Turnstile Site Key and Secret Key
 5. **Single Post** — Two sidebar widgets, each with: headline, source category, post count
    - **Related Posts** (`widget--news`) — image card style, count 1–6
-   - **Resources** (`widget--resources`) — text list style with category label, count 2–4
+   - **Resources** (`widget--resources`) — text list style with category label, count 2–6
+6. **Page Settings** — PLANNED, not yet built. Will hold the hero image fallback used by `ng_andersen_hero_image()`.
 
 ### Helper Functions:
 ```php
@@ -146,7 +149,7 @@ Registers an "Andersen" option in Users > Profile > Administration Colour Scheme
 
 ## Page Templates
 
-Stored in `/templates/` folder. Selected via WordPress page editor's Template dropdown. Use the `Template Name:` comment block:
+**Naming convention:** ALL custom page templates use the `template-{name}.php` format and are selected manually via the WordPress page editor's Template dropdown. The theme does NOT rely on WordPress's slug-based template hierarchy (`page-{slug}.php` auto-binding) — templates are always chosen explicitly. Every template file must include a `Template Name:` comment block to appear in the dropdown:
 
 ```php
 <?php
@@ -155,11 +158,17 @@ Stored in `/templates/` folder. Selected via WordPress page editor's Template dr
  */
 ```
 
+**Important:** When renaming a template file, the page-to-template association breaks (WordPress stores the old filename). After any rename, re-select the template on each affected page and update `is_page_template()` checks in `functions.php`.
+
 ### Existing Templates:
 - `template-contact.php` — 2-column: offices/maps (left) + CF7 form (right)
-- `page-team.php` — Team members listing with AJAX search and filters
-- `page-locations.php` — Locations map (external scripts)
-- `page-publications.php` — Publications listing with AJAX category filter and pagination
+- `template-teams.php` — Team members listing with AJAX search and filters
+- `template-locations.php` — Locations map (external scripts)
+- `template-global-presence.php` — Global Presence page
+- `template-publications.php` — Publications listing: search box (title-only) + category dropdown, AJAX filtering and pagination. This is the SINGLE publications template (the earlier accordion-sidebar variant was retired in favour of the dropdown version).
+
+### Templates that SKIP the shared hero helper:
+`template-global-presence.php` and `template-locations.php` manage their own heroes and are excluded from `ng_andersen_hero_image()`.
 
 ## Single Post Template (`single.php`)
 
@@ -240,11 +249,14 @@ Script: `team.js`. Debounced input (250ms).
 - Localized as: `teamSearchData.ajaxUrl`, `teamSearchData.nonce`
 
 ### AJAX Publications
-Script: `publications.js`. Category filter + pagination via AJAX. Shared renderer function `ng_andersen_publications_html()` used for both initial load and AJAX responses.
+Script: `publications.js`. Search (title-only) + category dropdown filter + pagination via AJAX. Shared renderer function `ng_andersen_publications_html( $cat, $page, $search )` used for both initial server-side load and AJAX responses.
 - Action: `ng_andersen_get_publications`
 - Nonce: `publications_nonce`
 - Localized as: `publicationsData.ajaxUrl`, `publicationsData.nonce`, `publicationsData.pageUrl`
-- Sidebar selectors use `#publications-filter-nav` (not a class) to avoid Foundation conflicts
+- Category `<select>` (`#publication-category`) bound via a native `addEventListener('change')` — jQuery delegation alone was unreliable because Foundation interferes with the select. The native listener is the binding that works.
+- Search box (`#publication-search`) uses debounced keyup (300ms); magnifying glass button submits the form.
+- `publications.js` contains TWO objects: `Publications` (legacy accordion, retained but unused) and `PublicationsDropdown` (active). Each guards on its own DOM element so the file is safe to load anywhere.
+- IMPORTANT: the `is_page_template()` enqueue check must match the actual template filename exactly. A filename mismatch silently prevents the script from loading (this caused a hard-to-spot bug previously).
 
 ## Security Standards
 
@@ -288,6 +300,15 @@ Script: `publications.js`. Category filter + pagination via AJAX. Shared rendere
 
 ### Issue: Category filter conflicting with WP query vars
 **Solution**: Use `publication_cat` not `cat` as the URL parameter. Use `tax_query` not `'cat'` in `WP_Query` args
+
+### Issue: Template-specific script (publications/team) not loading at all
+**Solution**: Check the `is_page_template()` path in `functions.php` matches the ACTUAL template filename exactly. After renaming template files, these checks must be updated or the script silently never enqueues. Verify by viewing page source for the script tag.
+
+### Issue: `<select>` change event not firing on AJAX filter
+**Solution**: Foundation can interfere with jQuery's delegated `change` on selects. Bind a native `document.getElementById(...).addEventListener('change', ...)` after DOM ready instead.
+
+### Issue: Page reverts to "Default template" after renaming a template file
+**Solution**: Renaming breaks the stored page-template association. Re-select the template in the page editor and update. Expected behaviour, not a bug.
 
 ## Commit Message Convention
 

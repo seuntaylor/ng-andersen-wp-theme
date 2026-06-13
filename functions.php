@@ -79,7 +79,7 @@ function theme_enqueue_assets() {
     // Loaded in footer, depends on jQuery
     // On Locations page, also depends on map-bootstrap to load after all map scripts
     $theme_scripts_deps = array( 'jquery' );
-    if ( is_page_template( 'templates/page-locations.php' ) ) {
+    if ( is_page_template( 'templates/template-locations.php' ) ) {
         $theme_scripts_deps[] = 'map-bootstrap';
     }
 
@@ -135,7 +135,7 @@ function theme_enqueue_assets() {
     wp_add_inline_script( 'theme-scripts', $parse_countries_js );
 
     // Team script — only on team page
-    if ( is_page_template( 'templates/page-team.php' ) ) {
+    if ( is_page_template( 'templates/template-teams.php' ) ) {
         wp_enqueue_script(
             'team-js',
             get_template_directory_uri() . '/assets/js/team.js',
@@ -150,8 +150,8 @@ function theme_enqueue_assets() {
         ) );
     }
 
-    // Publications script — loaded on both publication template variants
-    if ( is_page_template( 'templates/page-publications.php' ) || is_page_template( 'templates/page-publications-dd.php' ) ) {
+    // Publications script — single dropdown template
+    if ( is_page_template( 'templates/template-publications.php' ) ) {
         wp_enqueue_script(
             'publications-js',
             get_template_directory_uri() . '/assets/js/publications.js',
@@ -243,7 +243,7 @@ add_filter( 'body_class', 'theme_body_classes' );
 function theme_enqueue_locations_assets() {
 
     // Only load on pages using the Locations page template
-    if ( ! is_page_template( 'templates/page-locations.php' ) ) {
+    if ( ! is_page_template( 'templates/template-locations.php' ) ) {
         return;
     }
 
@@ -1010,15 +1010,7 @@ function ng_andersen_publications_html( $cat = 0, $page = 1, $search = '' ) {
                             <div class="item">
                                 <div class="image">
                                     <span class="img-bg">
-                                        <?php
-                                        if ( has_post_thumbnail() ) {
-                                            the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
-                                        } else {
-                                            ?>
-                                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                            <?php
-                                        }
-                                        ?>
+                                        <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                                     </span>
                                     <?php
                                     // Category badge overlaid on image
