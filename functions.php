@@ -1150,6 +1150,17 @@ add_filter( 'redirect_canonical', function( $redirect_url ) {
 
 
 // ============================================================
+// 11b. SEARCH RESULTS — 12 PER PAGE
+// ============================================================
+
+add_action( 'pre_get_posts', function( $query ) {
+    if ( ! is_admin() && $query->is_main_query() && $query->is_search() ) {
+        $query->set( 'posts_per_page', 12 );
+    }
+} );
+
+
+// ============================================================
 // 12. ANDERSEN ADMIN COLOR SCHEME
 // ============================================================
 
