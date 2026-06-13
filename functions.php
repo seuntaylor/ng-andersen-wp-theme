@@ -1188,4 +1188,90 @@ add_action( 'admin_init', function() {
 } );
 
 
+// ============================================================
+// 13. CUSTOM POST TYPE — SERVICE
+// ============================================================
+
+function theme_register_service_cpt() {
+    $labels = array(
+        'name'               => 'Services',
+        'singular_name'      => 'Service',
+        'menu_name'          => 'Services',
+        'all_items'          => 'All Services',
+        'add_new'            => 'Add New Service',
+        'add_new_item'       => 'Add New Service',
+        'edit_item'          => 'Edit Service',
+        'view_item'          => 'View Service',
+        'search_items'       => 'Search Services',
+    );
+
+    $args = array(
+        'labels'            => $labels,
+        'public'            => true,
+        'show_ui'           => true,
+        'show_in_menu'      => true,
+        'menu_position'     => 7,
+        'menu_icon'         => 'dashicons-portfolio',
+        'supports'          => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
+        'has_archive'       => false,
+        'rewrite'           => array( 'slug' => 'service' ),
+        'show_in_rest'      => true,
+    );
+
+    register_post_type( 'service', $args );
+}
+add_action( 'init', 'theme_register_service_cpt' );
+
+
+// Service custom meta box — short description
+function ng_andersen_add_service_meta_boxes() {
+    add_meta_box(
+        'service_short_description',
+        'Short Description',
+        'ng_andersen_render_service_meta_box',
+        'service',
+        'normal',
+        'high'
+    );
+}
+add_action( 'add_meta_boxes', 'ng_andersen_add_service_meta_boxes' );
+
+
+// Render service short description meta box
+function ng_andersen_render_service_meta_box( $post ) {
+    wp_nonce_field( 'ng_andersen_save_service_meta', 'ng_andersen_service_meta_nonce' );
+
+    $short_description = get_post_meta( $post->ID, '_service_short_description', true );
+    ?>
+    <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+        A brief plain-text summary used in service listings and cards. The full formatted description goes in the main editor above.
+    </p>
+    <textarea
+        id="service_short_description"
+        name="service_short_description"
+        rows="3"
+        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+    ><?php echo esc_textarea( $short_description ); ?></textarea>
+    <?php
+}
+
+
+// Save service meta
+function ng_andersen_save_service_meta( $post_id ) {
+    if (
+        ! isset( $_POST['ng_andersen_service_meta_nonce'] ) ||
+        ! wp_verify_nonce( $_POST['ng_andersen_service_meta_nonce'], 'ng_andersen_save_service_meta' ) ||
+        ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
+        ! current_user_can( 'edit_post', $post_id )
+    ) {
+        return;
+    }
+
+    if ( isset( $_POST['service_short_description'] ) ) {
+        update_post_meta( $post_id, '_service_short_description', sanitize_textarea_field( $_POST['service_short_description'] ) );
+    }
+}
+add_action( 'save_post_service', 'ng_andersen_save_service_meta' );
+
+
 require_once get_template_directory() . '/theme-settings.php';
