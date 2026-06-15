@@ -101,7 +101,40 @@ add_action( 'admin_init', function() {
         },
     ) );
     register_setting( 'ng-andersen-settings', 'ng_andersen_resources_widget_count' );
+
+    // ============================================================
+    // CATEGORY IMAGES
+    // ============================================================
+
+    // Hero images keyed by category ID — stored as array( term_id => attachment_id )
+    register_setting( 'ng-andersen-settings', 'ng_andersen_category_hero_images', array(
+        'sanitize_callback' => 'ng_andersen_sanitize_category_image_map',
+    ) );
+
+    // Card fallback images keyed by category ID — stored as array( term_id => attachment_id )
+    register_setting( 'ng-andersen-settings', 'ng_andersen_category_card_images', array(
+        'sanitize_callback' => 'ng_andersen_sanitize_category_image_map',
+    ) );
 } );
+
+/**
+ * Sanitize a category => attachment ID map.
+ * Ensures both keys and values are positive integers; drops empties.
+ */
+function ng_andersen_sanitize_category_image_map( $value ) {
+    if ( ! is_array( $value ) ) {
+        return array();
+    }
+    $clean = array();
+    foreach ( $value as $term_id => $attachment_id ) {
+        $term_id       = absint( $term_id );
+        $attachment_id = absint( $attachment_id );
+        if ( $term_id > 0 && $attachment_id > 0 ) {
+            $clean[ $term_id ] = $attachment_id;
+        }
+    }
+    return $clean;
+}
 
 /**
  * Render the settings page with tabs
@@ -134,6 +167,9 @@ function ng_andersen_render_settings_page() {
             </a>
             <a href="?page=ng-andersen-settings&tab=single-post" class="nav-tab <?php echo $active_tab === 'single-post' ? 'nav-tab-active' : ''; ?>">
                 Single Post
+            </a>
+            <a href="?page=ng-andersen-settings&tab=category-images" class="nav-tab <?php echo $active_tab === 'category-images' ? 'nav-tab-active' : ''; ?>">
+                Category Images
             </a>
         </nav>
 
@@ -183,6 +219,14 @@ function ng_andersen_render_settings_page() {
                 <p>Configure the related posts widget that appears in the right column of every single post page.</p>
 
                 <?php ng_andersen_render_single_post_section(); ?>
+            </div>
+
+            <!-- CATEGORY IMAGES TAB -->
+            <div class="tab-content" <?php echo $active_tab !== 'category-images' ? 'style="display:none;"' : ''; ?>>
+                <h2>Category Images</h2>
+                <p>Define images per category. The <strong>Hero Image</strong> is always used on the single post hero for posts in that category (overriding the post&rsquo;s own featured image). The <strong>Card Fallback</strong> is used on the home, publications, and search card grids only when a post has no featured image of its own.</p>
+
+                <?php ng_andersen_render_category_images_section(); ?>
             </div>
 
             <?php submit_button(); ?>
@@ -734,4 +778,203 @@ function ng_andersen_get_single_post_settings() {
         'resources_cats'    => array_map( 'absint', $resources_cats ),
         'resources_count'   => absint( get_option( 'ng_andersen_resources_widget_count', 3 ) ),
     );
+}
+
+/**
+ * Enqueue the WordPress media library + picker JS on the settings page only.
+ */
+add_action( 'admin_enqueue_scripts', function( $hook ) {
+    // Only load on our settings page
+    if ( 'toplevel_page_ng-andersen-settings' !== $hook && 'settings_page_ng-andersen-settings' !== $hook ) {
+        // Hook suffix varies by how the menu is registered; check the request as a fallback
+        if ( ! isset( $_GET['page'] ) || 'ng-andersen-settings' !== $_GET['page'] ) {
+            return;
+        }
+    }
+    wp_enqueue_media();
+} );
+
+/**
+ * Render the Category Images section.
+ * Lists every category with a Hero Image picker and a Card Fallback picker,
+ * each showing a live preview.
+ */
+function ng_andersen_render_category_images_section() {
+    $hero_images = get_option( 'ng_andersen_category_hero_images', array() );
+    $card_images = get_option( 'ng_andersen_category_card_images', array() );
+    if ( ! is_array( $hero_images ) ) {
+        $hero_images = array();
+    }
+    if ( ! is_array( $card_images ) ) {
+        $card_images = array();
+    }
+
+    $categories = get_categories( array(
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+        'hide_empty' => false,
+    ) );
+
+    if ( empty( $categories ) ) {
+        echo '<p>No categories found.</p>';
+        return;
+    }
+    ?>
+
+    <table class="form-table ng-category-images">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Category</th>
+                <th style="width: 37.5%;">Hero Image <span style="font-weight: 400; color: #666;">(full size)</span></th>
+                <th style="width: 37.5%;">Card Fallback <span style="font-weight: 400; color: #666;">(medium size)</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ( $categories as $cat ) {
+                $hero_id = isset( $hero_images[ $cat->term_id ] ) ? absint( $hero_images[ $cat->term_id ] ) : 0;
+                $card_id = isset( $card_images[ $cat->term_id ] ) ? absint( $card_images[ $cat->term_id ] ) : 0;
+
+                $hero_src = $hero_id ? wp_get_attachment_image_url( $hero_id, 'medium' ) : '';
+                $card_src = $card_id ? wp_get_attachment_image_url( $card_id, 'medium' ) : '';
+                ?>
+                <tr>
+                    <td style="vertical-align: top; padding-top: 20px;">
+                        <strong><?php echo esc_html( $cat->name ); ?></strong>
+                        <span style="display: block; color: #999; font-size: 12px;"><?php echo absint( $cat->count ); ?> posts</span>
+                    </td>
+
+                    <!-- Hero Image -->
+                    <td>
+                        <div class="ng-image-field" data-target="hero" data-term="<?php echo absint( $cat->term_id ); ?>">
+                            <div class="ng-image-preview" style="margin-bottom: 8px;">
+                                <img src="<?php echo esc_url( $hero_src ); ?>" style="max-width: 200px; height: auto; display: <?php echo $hero_src ? 'block' : 'none'; ?>; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <input type="hidden"
+                                name="ng_andersen_category_hero_images[<?php echo absint( $cat->term_id ); ?>]"
+                                value="<?php echo $hero_id ? absint( $hero_id ) : ''; ?>"
+                                class="ng-image-id">
+                            <button type="button" class="button ng-image-select">Select Image</button>
+                            <button type="button" class="button ng-image-remove" style="<?php echo $hero_id ? '' : 'display:none;'; ?>">Remove</button>
+                        </div>
+                    </td>
+
+                    <!-- Card Fallback -->
+                    <td>
+                        <div class="ng-image-field" data-target="card" data-term="<?php echo absint( $cat->term_id ); ?>">
+                            <div class="ng-image-preview" style="margin-bottom: 8px;">
+                                <img src="<?php echo esc_url( $card_src ); ?>" style="max-width: 200px; height: auto; display: <?php echo $card_src ? 'block' : 'none'; ?>; border: 1px solid #ddd; border-radius: 4px;">
+                            </div>
+                            <input type="hidden"
+                                name="ng_andersen_category_card_images[<?php echo absint( $cat->term_id ); ?>]"
+                                value="<?php echo $card_id ? absint( $card_id ) : ''; ?>"
+                                class="ng-image-id">
+                            <button type="button" class="button ng-image-select">Select Image</button>
+                            <button type="button" class="button ng-image-remove" style="<?php echo $card_id ? '' : 'display:none;'; ?>">Remove</button>
+                        </div>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+
+    <script>
+    (function($){
+        $(document).on('click', '.ng-image-select', function(e){
+            e.preventDefault();
+            var $field = $(this).closest('.ng-image-field');
+            var frame = wp.media({
+                title: 'Select Image',
+                button: { text: 'Use this image' },
+                multiple: false
+            });
+            frame.on('select', function(){
+                var attachment = frame.state().get('selection').first().toJSON();
+                // Prefer medium size for preview, fall back to full
+                var previewUrl = ( attachment.sizes && attachment.sizes.medium )
+                    ? attachment.sizes.medium.url
+                    : attachment.url;
+                $field.find('.ng-image-id').val( attachment.id );
+                $field.find('.ng-image-preview img').attr('src', previewUrl).show();
+                $field.find('.ng-image-remove').show();
+            });
+            frame.open();
+        });
+
+        $(document).on('click', '.ng-image-remove', function(e){
+            e.preventDefault();
+            var $field = $(this).closest('.ng-image-field');
+            $field.find('.ng-image-id').val('');
+            $field.find('.ng-image-preview img').attr('src', '').hide();
+            $(this).hide();
+        });
+    })(jQuery);
+    </script>
+    <?php
+}
+
+/**
+ * Get the hero image URL for a given post, based on its first category.
+ * Always used on the single post hero (overrides featured image).
+ * Falls back to landing.jpg when no category image is defined.
+ *
+ * @param int $post_id
+ * @return string Image URL
+ */
+function ng_andersen_get_post_hero_image( $post_id = null ) {
+    $post_id = $post_id ? $post_id : get_the_ID();
+    $fallback = get_template_directory_uri() . '/assets/img/landing.jpg';
+
+    $cats = get_the_category( $post_id );
+    if ( empty( $cats ) ) {
+        return $fallback;
+    }
+
+    // First assigned category wins
+    $primary_cat = $cats[0]->term_id;
+
+    $hero_images = get_option( 'ng_andersen_category_hero_images', array() );
+    if ( is_array( $hero_images ) && ! empty( $hero_images[ $primary_cat ] ) ) {
+        $url = wp_get_attachment_image_url( absint( $hero_images[ $primary_cat ] ), 'full' );
+        if ( $url ) {
+            return $url;
+        }
+    }
+
+    return $fallback;
+}
+
+/**
+ * Get the card image URL for a given post.
+ * Uses the post's own featured image first; if none, falls back to the
+ * category card image; finally to block1.jpg.
+ *
+ * @param int $post_id
+ * @return string Image URL
+ */
+function ng_andersen_get_post_card_image( $post_id = null ) {
+    $post_id = $post_id ? $post_id : get_the_ID();
+    $fallback = get_template_directory_uri() . '/assets/img/block1.jpg';
+
+    // Featured image first
+    if ( has_post_thumbnail( $post_id ) ) {
+        $url = get_the_post_thumbnail_url( $post_id, 'medium' );
+        if ( $url ) {
+            return $url;
+        }
+    }
+
+    // Category card fallback
+    $cats = get_the_category( $post_id );
+    if ( ! empty( $cats ) ) {
+        $primary_cat = $cats[0]->term_id;
+        $card_images = get_option( 'ng_andersen_category_card_images', array() );
+        if ( is_array( $card_images ) && ! empty( $card_images[ $primary_cat ] ) ) {
+            $url = wp_get_attachment_image_url( absint( $card_images[ $primary_cat ] ), 'medium' );
+            if ( $url ) {
+                return $url;
+            }
+        }
+    }
+
+    return $fallback;
 }

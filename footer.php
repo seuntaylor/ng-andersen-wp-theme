@@ -83,27 +83,21 @@
                                 ?>
                             </div>
 
-                            <!-- Footer Widget Column 1 -->
-                            <div class="cell large-3 medium-4 small-12">
-                                <?php dynamic_sidebar( 'footer-column-1' ); ?>
-                            </div>
+                            <!-- Footer Menu Column 1 (two sub-columns) -->
+                            <?php ng_andersen_footer_menu_column( 'footer-col-1', true ); ?>
 
-                            <!-- Footer Widget Column 2 -->
-                            <div class="cell large-3 medium-4 small-12">
-                                <?php dynamic_sidebar( 'footer-column-2' ); ?>
-                            </div>
+                            <!-- Footer Menu Column 2 (two sub-columns) -->
+                            <?php ng_andersen_footer_menu_column( 'footer-col-2', true ); ?>
 
-                            <!-- Footer Widget Column 3 -->
-                            <div class="cell large-3 medium-4 small-12">
-                                <?php dynamic_sidebar( 'footer-column-3' ); ?>
-                            </div>
+                            <!-- Footer Menu Column 3 (single column) -->
+                            <?php ng_andersen_footer_menu_column( 'footer-col-3', false ); ?>
 
                         </div>
                         <!-- / .grid-x -->
 
                         <!-- Footer Bottom Bar -->
                         <div class="footer-bottom">
-                            <p class="footer-copyright">&copy;Andersen Tax LLC and Andersen Tax LP. Andersen Tax LP is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax & Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
+                            <p class="footer-copyright">&copy;Andersen Tax LLC and [INSERT LEGAL ENTITY NAME]. [INSERT LEGAL ENTITY NAME] is the [COUNTRY NAME] member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
 
                             <div class="footer-utility-menu">
                                 <ul>

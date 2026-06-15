@@ -20,13 +20,9 @@ get_header();
 <!-- Hero Section — featured image as background -->
 <div class="section-page_hero gradient-diagonal" id="page-hero">
 
-    <!-- Background: featured image or fallback -->
+    <!-- Background: category hero image (falls back to landing.jpg) -->
     <div class="bg img-bg">
-        <?php if ( has_post_thumbnail() ) { ?>
-            <?php the_post_thumbnail( 'full', array( 'alt' => esc_attr( get_the_title() ) ) ); ?>
-        <?php } else { ?>
-            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/landing.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-        <?php } ?>
+        <img src="<?php echo esc_url( ng_andersen_get_post_hero_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
     </div>
 
     <!-- Breadcrumbs -->
@@ -138,17 +134,9 @@ get_header();
                                                         ?>
                                                         <div class="item">
                                                             <div class="image">
-                                                                <span class="img-bg">
-                                                                    <?php
-                                                                    if ( has_post_thumbnail() ) {
-                                                                        the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
-                                                                    } else {
-                                                                        ?>
-                                                                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                                                        <?php
-                                                                    }
-                                                                    ?>
-                                                                </span>
+                                                                <a href="<?php the_permalink(); ?>" class="img-bg">
+                                                                    <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                                                </a>
                                                             </div>
                                                             <div class="text">
                                                                 <div class="text-body">

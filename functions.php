@@ -34,8 +34,11 @@ function theme_setup() {
 
     // Register navigation menus
     register_nav_menus( array(
-        'primary'   => __( 'Primary Navigation', 'ng-andersen' ),
-        'secondary' => __( 'Secondary Navigation', 'ng-andersen' ),
+        'primary'        => __( 'Primary Navigation', 'ng-andersen' ),
+        'secondary'      => __( 'Secondary Navigation', 'ng-andersen' ),
+        'footer-col-1'   => __( 'Footer Column 1', 'ng-andersen' ),
+        'footer-col-2'   => __( 'Footer Column 2', 'ng-andersen' ),
+        'footer-col-3'   => __( 'Footer Column 3', 'ng-andersen' ),
     ) );
 }
 add_action( 'after_setup_theme', 'theme_setup' );
@@ -79,7 +82,7 @@ function theme_enqueue_assets() {
     // Loaded in footer, depends on jQuery
     // On Locations page, also depends on map-bootstrap to load after all map scripts
     $theme_scripts_deps = array( 'jquery' );
-    if ( is_page_template( 'templates/page-locations.php' ) ) {
+    if ( is_page_template( 'templates/template-locations.php' ) ) {
         $theme_scripts_deps[] = 'map-bootstrap';
     }
 
@@ -135,7 +138,7 @@ function theme_enqueue_assets() {
     wp_add_inline_script( 'theme-scripts', $parse_countries_js );
 
     // Team script — only on team page
-    if ( is_page_template( 'templates/page-team.php' ) ) {
+    if ( is_page_template( 'templates/template-teams.php' ) ) {
         wp_enqueue_script(
             'team-js',
             get_template_directory_uri() . '/assets/js/team.js',
@@ -150,8 +153,8 @@ function theme_enqueue_assets() {
         ) );
     }
 
-    // Publications script — only on publications page
-    if ( is_page_template( 'templates/page-publications.php' ) ) {
+    // Publications script — single dropdown template
+    if ( is_page_template( 'templates/template-publications.php' ) ) {
         wp_enqueue_script(
             'publications-js',
             get_template_directory_uri() . '/assets/js/publications.js',
@@ -163,7 +166,7 @@ function theme_enqueue_assets() {
         wp_localize_script( 'publications-js', 'publicationsData', array(
             'ajaxUrl' => esc_url( admin_url( 'admin-ajax.php' ) ),
             'nonce'   => wp_create_nonce( 'publications_nonce' ),
-            'pageUrl' => esc_url( get_permalink( get_option( 'page_for_posts' ) ) ),
+            'pageUrl' => esc_url( get_the_permalink( get_the_ID() ) ),
         ) );
     }
 }
@@ -187,35 +190,49 @@ add_filter( 'wp_resource_hints', 'theme_preconnect_hints', 10, 2 );
 // ============================================================
 // 4. WIDGET AREAS
 // ============================================================
+// Footer columns are now handled by nav menu locations
+// (footer-col-1, footer-col-2, footer-col-3) registered in theme_setup().
+// No widget areas are currently registered.
 
-function theme_register_widget_areas() {
-    $footer_columns = array(
-        array(
-            'name' => __( 'Footer Column 1', 'ng-andersen' ),
-            'id'   => 'footer-column-1',
-        ),
-        array(
-            'name' => __( 'Footer Column 2', 'ng-andersen' ),
-            'id'   => 'footer-column-2',
-        ),
-        array(
-            'name' => __( 'Footer Column 3', 'ng-andersen' ),
-            'id'   => 'footer-column-3',
-        ),
-    );
+/**
+ * Render a footer column from a registered nav menu location.
+ *
+ * Outputs a <nav> cell with the menu's NAME as an <h5> heading, followed
+ * by the menu's links. Renders nothing if no menu is assigned to the location.
+ *
+ * @param string $location  The nav menu location slug (e.g. 'footer-col-1').
+ * @param bool   $two_cols  Whether to apply the 'menu-2cols' class (splits into 2).
+ */
+function ng_andersen_footer_menu_column( $location, $two_cols = false ) {
+    $locations = get_nav_menu_locations();
 
-    foreach ( $footer_columns as $column ) {
-        register_sidebar( array(
-            'name'          => $column['name'],
-            'id'            => $column['id'],
-            'before_widget' => '<div class="footer-widget %2$s">',
-            'after_widget'  => '</div>',
-            'before_title'  => '<h5>',
-            'after_title'   => '</h5>',
-        ) );
+    // Nothing assigned to this location — render nothing
+    if ( empty( $locations[ $location ] ) ) {
+        return;
     }
+
+    $menu_obj = wp_get_nav_menu_object( $locations[ $location ] );
+    if ( ! $menu_obj ) {
+        return;
+    }
+
+    $heading   = $menu_obj->name;
+    $ul_class  = $two_cols ? 'menu-2cols' : '';
+    ?>
+    <nav class="cell large-3 medium-4 small-12">
+        <h5><?php echo esc_html( $heading ); ?></h5>
+        <?php
+        wp_nav_menu( array(
+            'theme_location' => $location,
+            'container'      => false,
+            'menu_class'     => $ul_class,
+            'depth'          => 1,
+            'fallback_cb'    => false,
+        ) );
+        ?>
+    </nav>
+    <?php
 }
-add_action( 'widgets_init', 'theme_register_widget_areas' );
 
 
 // ============================================================
@@ -243,7 +260,7 @@ add_filter( 'body_class', 'theme_body_classes' );
 function theme_enqueue_locations_assets() {
 
     // Only load on pages using the Locations page template
-    if ( ! is_page_template( 'templates/page-locations.php' ) ) {
+    if ( ! is_page_template( 'templates/template-locations.php' ) ) {
         return;
     }
 
@@ -966,7 +983,7 @@ add_action( 'wp_ajax_nopriv_ng_andersen_search_team_members', 'ng_andersen_ajax_
 // 10. AJAX: PUBLICATIONS
 // ============================================================
 
-function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
+function ng_andersen_publications_html( $cat = 0, $page = 1, $search = '' ) {
     $query_args = array(
         'post_type'      => 'post',
         'posts_per_page' => 12,
@@ -986,6 +1003,12 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
         );
     }
 
+    // Title-only search — avoids full content search for performance
+    if ( ! empty( $search ) ) {
+        $query_args['search_columns'] = array( 'post_title' );
+        $query_args['s']              = $search;
+    }
+
     $publications = new WP_Query( $query_args );
     $total_pages  = $publications->max_num_pages;
 
@@ -1003,17 +1026,9 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
                         <div class="cell medium-6 large-4">
                             <div class="item">
                                 <div class="image">
-                                    <span class="img-bg">
-                                        <?php
-                                        if ( has_post_thumbnail() ) {
-                                            the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
-                                        } else {
-                                            ?>
-                                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
-                                            <?php
-                                        }
-                                        ?>
-                                    </span>
+                                    <a href="<?php the_permalink(); ?>" class="img-bg">
+                                        <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                    </a>
                                     <?php
                                     // Category badge overlaid on image
                                     $categories = get_the_category();
@@ -1121,10 +1136,11 @@ function ng_andersen_publications_html( $cat = 0, $page = 1 ) {
 function ng_andersen_ajax_get_publications() {
     check_ajax_referer( 'publications_nonce', 'nonce' );
 
-    $cat  = isset( $_POST['cat'] )  ? absint( $_POST['cat'] )  : 0;
-    $page = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+    $cat    = isset( $_POST['cat'] )    ? absint( $_POST['cat'] )                        : 0;
+    $page   = isset( $_POST['page'] )   ? absint( $_POST['page'] )                       : 1;
+    $search = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] )        : '';
 
-    wp_send_json_success( array( 'html' => ng_andersen_publications_html( $cat, $page ) ) );
+    wp_send_json_success( array( 'html' => ng_andersen_publications_html( $cat, $page, $search ) ) );
 }
 add_action( 'wp_ajax_ng_andersen_get_publications',        'ng_andersen_ajax_get_publications' );
 add_action( 'wp_ajax_nopriv_ng_andersen_get_publications', 'ng_andersen_ajax_get_publications' );
@@ -1139,6 +1155,17 @@ add_filter( 'redirect_canonical', function( $redirect_url ) {
         return false;
     }
     return $redirect_url;
+} );
+
+
+// ============================================================
+// 11b. SEARCH RESULTS — 12 PER PAGE
+// ============================================================
+
+add_action( 'pre_get_posts', function( $query ) {
+    if ( ! is_admin() && $query->is_main_query() && $query->is_search() ) {
+        $query->set( 'posts_per_page', 12 );
+    }
 } );
 
 
@@ -1162,90 +1189,89 @@ add_action( 'admin_init', function() {
 
 
 // ============================================================
-// 13. CUSTOM POST META FIELDS
+// 13. CUSTOM POST TYPE — SERVICE
 // ============================================================
 
-function ng_andersen_register_post_meta_box() {
+function theme_register_service_cpt() {
+    $labels = array(
+        'name'               => 'Services',
+        'singular_name'      => 'Service',
+        'menu_name'          => 'Services',
+        'all_items'          => 'All Services',
+        'add_new'            => 'Add New Service',
+        'add_new_item'       => 'Add New Service',
+        'edit_item'          => 'Edit Service',
+        'view_item'          => 'View Service',
+        'search_items'       => 'Search Services',
+    );
+
+    $args = array(
+        'labels'            => $labels,
+        'public'            => true,
+        'show_ui'           => true,
+        'show_in_menu'      => true,
+        'menu_position'     => 7,
+        'menu_icon'         => 'dashicons-portfolio',
+        'supports'          => array( 'title', 'editor', 'thumbnail', 'page-attributes' ),
+        'has_archive'       => false,
+        'rewrite'           => array( 'slug' => 'service' ),
+        'show_in_rest'      => true,
+    );
+
+    register_post_type( 'service', $args );
+}
+add_action( 'init', 'theme_register_service_cpt' );
+
+
+// Service custom meta box — short description
+function ng_andersen_add_service_meta_boxes() {
     add_meta_box(
-        'ng_andersen_post_fields',
-        'Post Fields',
-        'ng_andersen_render_post_meta_box',
-        'post',
+        'service_short_description',
+        'Short Description',
+        'ng_andersen_render_service_meta_box',
+        'service',
         'normal',
-        'default'
+        'high'
     );
 }
-add_action( 'add_meta_boxes', 'ng_andersen_register_post_meta_box' );
+add_action( 'add_meta_boxes', 'ng_andersen_add_service_meta_boxes' );
 
 
-function ng_andersen_render_post_meta_box( $post ) {
-    wp_nonce_field( 'ng_andersen_save_post_meta', 'ng_andersen_post_meta_nonce' );
+// Render service short description meta box
+function ng_andersen_render_service_meta_box( $post ) {
+    wp_nonce_field( 'ng_andersen_save_service_meta', 'ng_andersen_service_meta_nonce' );
 
-    $download_link = get_post_meta( $post->ID, 'download_link', true );
-    $release_date  = get_post_meta( $post->ID, 'release', true );
+    $short_description = get_post_meta( $post->ID, '_service_short_description', true );
     ?>
-    <table class="form-table">
-        <tr>
-            <th><label for="ng_andersen_download_link">Download Link</label></th>
-            <td>
-                <input
-                    type="url"
-                    id="ng_andersen_download_link"
-                    name="ng_andersen_download_link"
-                    value="<?php echo esc_attr( $download_link ); ?>"
-                    class="regular-text"
-                    placeholder="https://"
-                >
-                <p class="description">Full URL to the downloadable file or resource.</p>
-            </td>
-        </tr>
-        <tr>
-            <th><label for="ng_andersen_release_date">Release Date</label></th>
-            <td>
-                <input
-                    type="date"
-                    id="ng_andersen_release_date"
-                    name="ng_andersen_release_date"
-                    value="<?php echo esc_attr( $release_date ); ?>"
-                >
-                <p class="description">The release date of this content (YYYY-MM-DD).</p>
-            </td>
-        </tr>
-    </table>
+    <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+        A brief plain-text summary used in service listings and cards. The full formatted description goes in the main editor above.
+    </p>
+    <textarea
+        id="service_short_description"
+        name="service_short_description"
+        rows="3"
+        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+    ><?php echo esc_textarea( $short_description ); ?></textarea>
     <?php
 }
 
 
-function ng_andersen_save_post_meta( $post_id ) {
+// Save service meta
+function ng_andersen_save_service_meta( $post_id ) {
     if (
-        ! isset( $_POST['ng_andersen_post_meta_nonce'] ) ||
-        ! wp_verify_nonce( $_POST['ng_andersen_post_meta_nonce'], 'ng_andersen_save_post_meta' ) ||
+        ! isset( $_POST['ng_andersen_service_meta_nonce'] ) ||
+        ! wp_verify_nonce( $_POST['ng_andersen_service_meta_nonce'], 'ng_andersen_save_service_meta' ) ||
         ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ||
         ! current_user_can( 'edit_post', $post_id )
     ) {
         return;
     }
 
-    // Save download link
-    if ( isset( $_POST['ng_andersen_download_link'] ) ) {
-        $download_link = esc_url_raw( trim( $_POST['ng_andersen_download_link'] ) );
-        if ( ! empty( $download_link ) ) {
-            update_post_meta( $post_id, 'download_link', $download_link );
-        } else {
-            delete_post_meta( $post_id, 'download_link' );
-        }
-    }
-
-    // Save release date — validate format before saving
-    if ( isset( $_POST['ng_andersen_release_date'] ) ) {
-        $release_date = sanitize_text_field( trim( $_POST['ng_andersen_release_date'] ) );
-        if ( ! empty( $release_date ) && false !== DateTime::createFromFormat( 'Y-m-d', $release_date ) ) {
-            update_post_meta( $post_id, 'release', $release_date );
-        } elseif ( empty( $release_date ) ) {
-            delete_post_meta( $post_id, 'release' );
-        }
+    if ( isset( $_POST['service_short_description'] ) ) {
+        update_post_meta( $post_id, '_service_short_description', sanitize_textarea_field( $_POST['service_short_description'] ) );
     }
 }
-add_action( 'save_post', 'ng_andersen_save_post_meta' );
+add_action( 'save_post_service', 'ng_andersen_save_service_meta' );
+
 
 require_once get_template_directory() . '/theme-settings.php';

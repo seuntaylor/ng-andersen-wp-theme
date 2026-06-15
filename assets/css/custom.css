@@ -336,3 +336,34 @@
 .widget--resources .item p {
     margin: 0;
 }
+
+/* ============================================================
+   9. 404 ERROR PAGE
+   ============================================================
+*/
+
+/* Keep search input and icon button on one row, icon to the right */
+.error-search .form-item--field {
+    position: relative;
+    display: block;
+}
+
+.error-search .form-item--field input[type="search"] {
+    width: 100%;
+    padding-right: 50px;
+    box-sizing: border-box;
+}
+
+.error-search .form-item--field button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 50px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
