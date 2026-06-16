@@ -14,9 +14,9 @@
     </div>
     <div class="container">
         <div class="text">
-            <h2>Headline Text Goes Here</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-            <a href="#" class="button">Learn More</a>
+            <h2>About Us</h2>
+            <p>We provide specialist Tax, Corporate and Commercial Advisory, Regulatory and Transactional Services, Transfer Pricing and business advisory services to resident and non-resident companies doing business in Nigeria, West Africa and globally. The firm consists of professionals with many years of experience in taxation, transfer pricing, accounting advisory and transactional services both at local and international levels.</p>
+            <a href="/about-us/" class="button">More About Us</a>
         </div>
     </div>
 </div>

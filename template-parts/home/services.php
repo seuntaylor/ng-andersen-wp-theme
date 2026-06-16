@@ -1,85 +1,83 @@
 <?php
 /**
- * Homepage Section: Services
+ * Homepage Section: Our Services
  *
- * Currently static. Future development: convert to a Custom Post Type
- * for the firm's services. Each service item will have fields for
- * image, service title, description, and CTA link.
+ * Displays the first three Service CPT entries (by manual menu order).
+ * - Image  → service featured image
+ * - <h3>   → service title
+ * - <p>    → service content (trimmed)
+ * - CTA    → "Read More" linking to the single service
  *
  * @package ng-andersen
  */
+
+$home_services = new WP_Query( array(
+    'post_type'      => 'service',
+    'post_status'    => 'publish',
+    'posts_per_page' => 3,
+    'orderby'        => 'menu_order',
+    'order'          => 'ASC',
+) );
 ?>
 <div class="section-services">
-
     <div class="bg">
         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/Swooshes.svg' ); ?>" alt="">
     </div>
-
     <div class="container">
         <div class="grid-x align-middle">
-
             <div class="cell large-4">
                 <h2>Our Services</h2>
             </div>
-
             <div class="cell large-8">
                 <div class="services-list">
-
-                    <div class="item">
-                        <div class="item-image">
-                            <span class="img-bg">
-                                <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/cta2.jpg' ); ?>" alt="">
-                            </span>
-                        </div>
-                        <div class="item-title">
-                            <h3>Service 1</h3>
-                        </div>
-                        <div class="item-text">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</p>
-                            <div class="item-text--cta">
-                                <a href="#" class="button-link">Call To Action &raquo;</a>
+                    <?php
+                    if ( $home_services->have_posts() ) {
+                        while ( $home_services->have_posts() ) {
+                            $home_services->the_post();
+                            ?>
+                            <div class="item">
+                                <div class="item-image">
+                                    <a href="<?php the_permalink(); ?>" class="img-bg">
+                                        <?php
+                                        if ( has_post_thumbnail() ) {
+                                            the_post_thumbnail( 'medium', array( 'alt' => esc_attr( get_the_title() ) ) );
+                                        } else {
+                                            ?>
+                                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/cta2.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                            <?php
+                                        }
+                                        ?>
+                                    </a>
+                                </div>
+                                <div class="item-title">
+                                    <h3><?php the_title(); ?></h3>
+                                </div>
+                                <div class="item-text">
+                                    <p><?php echo esc_html( wp_trim_words( get_the_content(), 20, '&hellip;' ) ); ?></p>
+                                    <div class="item-text--cta">
+                                        <a href="<?php the_permalink(); ?>" class="button-link">Read More &raquo;</a>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="item">
-                        <div class="item-image">
-                            <span class="img-bg">
-                                <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block5.jpg' ); ?>" alt="">
-                            </span>
-                        </div>
-                        <div class="item-title">
-                            <h3>Service 2</h3>
-                        </div>
-                        <div class="item-text">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</p>
-                            <div class="item-text--cta">
-                                <a href="#" class="button-link">Call To Action &raquo;</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="item">
-                        <div class="item-image">
-                            <span class="img-bg">
-                                <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block7.jpg' ); ?>" alt="">
-                            </span>
-                        </div>
-                        <div class="item-title">
-                            <h3>Service 3</h3>
-                        </div>
-                        <div class="item-text">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna</p>
-                            <div class="item-text--cta">
-                                <a href="#" class="button-link">Call To Action &raquo;</a>
-                            </div>
-                        </div>
-                    </div>
-
+                            <?php
+                        }
+                        wp_reset_postdata();
+                    }
+                    ?>
                 </div>
             </div>
-
         </div>
-    </div>
 
+        <?php
+        // Link to the full services listing page — full width, centred
+        $services_page = get_page_by_path( 'services' );
+        if ( $services_page ) {
+            ?>
+            <div class="services-list--cta">
+                <a href="<?php echo esc_url( get_permalink( $services_page->ID ) ); ?>" class="button">View All Services</a>
+            </div>
+            <?php
+        }
+        ?>
+    </div>
 </div>
