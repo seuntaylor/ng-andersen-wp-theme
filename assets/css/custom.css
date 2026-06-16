@@ -17,6 +17,8 @@
  * 6. Home Page Post Meta Customisations
  * 7. Publications Page
  * 8. Single Post Sidebar Widgets
+ * 9. 404 Error Page
+ * 10. Homepage Services Section
  */
 
 /* ============================================================
@@ -366,4 +368,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* ============================================================
+   10. HOMEPAGE SERVICES SECTION
+   ============================================================
+*/
+
+/* Centre the CTA button across the full section width */
+.section-services .services-list--cta {
+    margin-top: 30px;
+    text-align: center;
+    width: 100%;
 }
