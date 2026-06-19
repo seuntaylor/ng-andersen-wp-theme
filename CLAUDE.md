@@ -71,7 +71,7 @@ ng-andersen/
 ├── single.php                       (default single post template)
 ├── single-team_member.php           (CPT single template - note underscore)
 ├── single-service.php               (Service CPT single template)
-├── search.php                       (search results - 4-col card grid, 12 per page)
+├── search.php                       (search results - 4-col card grid, 12 per page, post-type/category badge)
 ├── 404.php                          (full-width, no sidebar, search + home button)
 ├── searchform.php
 ├── style.css
@@ -196,6 +196,14 @@ Registers an "Andersen" option in Users > Profile > Administration Colour Scheme
 
 ### Default Page Template (`page.php`)
 `page.php` IS the default for any page that does not select a template from the dropdown. It uses the inner-sub.html layout: hero (featured image, falls back to `inner-sub.jpg`), breadcrumbs (built from page ancestors), an intentionally BLANK left sidebar (`cell large-3`), the page content in `cell large-9` within `main-column-sub`, and an intentionally BLANK right column (`cell large-3`). Because it has no `Template Name:` header, it is the hierarchy default, not a selectable template. Pages needing other layouts pick their own template and bypass it. The hero `<p>` under the `<h1>` is intentionally left empty.
+
+## Search Results (`search.php`)
+
+4-column card grid (`large-3 medium-6`), 12 results per page, following the `section-blocks1 bg-gray` pattern. Includes both posts and pages. Each card has a badge overlaid top-right on the image:
+- **Posts** show their first category name (e.g. "Articles", "Newsletters")
+- **Other post types** (page, team_member, service) show the post type's singular label (e.g. "Page", "Team Member", "Service")
+
+The badge reuses the `.publication-category-badge` class; its CSS in `custom.css` is scoped to both `.section-blocks16` (publications) and `.section-blocks1` (search). Post cards use `ng_andersen_get_post_card_image()`; pages/other types use their featured image or `block1.jpg`.
 
 ## Category Archive Redirects
 
