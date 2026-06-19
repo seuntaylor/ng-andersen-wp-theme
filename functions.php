@@ -652,7 +652,7 @@ function theme_register_team_member_cpt() {
         'show_in_menu'      => true,
         'menu_position'     => 6,
         'menu_icon'         => 'dashicons-groups',
-        'supports'          => array( 'title', 'thumbnail', 'editor' ),
+        'supports'          => array( 'title', 'thumbnail', 'editor', 'page-attributes' ),
         'has_archive'       => true,
         'rewrite'           => array( 'slug' => 'team-member' ),
         'show_in_rest'      => true,
@@ -844,8 +844,10 @@ function ng_andersen_ajax_search_team_members() {
         'post_type'      => 'team_member',
         'posts_per_page' => 10,
         'paged'          => $paged,
-        'orderby'        => 'title',
-        'order'          => 'ASC',
+        'orderby'        => array(
+            'menu_order' => 'ASC',
+            'title'      => 'ASC',
+        ),
     );
 
     if ( ! empty( $name ) ) {
