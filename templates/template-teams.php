@@ -171,8 +171,10 @@ get_header();
                         $args = array(
                             'post_type'      => 'team_member',
                             'posts_per_page' => 10,
-                            'orderby'        => 'title',
-                            'order'          => 'ASC',
+                            'orderby'        => array(
+                                'menu_order' => 'ASC',
+                                'title'      => 'ASC',
+                            ),
                         );
 
                         $query = new WP_Query( $args );
