@@ -60,9 +60,7 @@ get_header();
     <div class="container">
         <div class="text">
             <h1><?php the_title(); ?></h1>
-            <?php if ( get_the_excerpt() ) { ?>
-                <p></p>
-            <?php } ?>
+            <p></p>
         </div>
     </div>
 </div>
