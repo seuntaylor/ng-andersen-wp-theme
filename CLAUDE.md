@@ -195,7 +195,11 @@ Registers an "Andersen" option in Users > Profile > Administration Colour Scheme
 - `template-inner-sub.php` — OPTIONAL. Same layout as `page.php` (hero + blank sidebars + content). Kept only if the layout also needs to be selectable by name; otherwise it can be removed since `page.php` provides this layout by default.
 
 ### Default Page Template (`page.php`)
-`page.php` IS the default for any page that does not select a template from the dropdown. It uses the inner-sub.html layout: hero (featured image, falls back to `inner-sub.jpg`), breadcrumbs (built from page ancestors), an intentionally BLANK left sidebar (`cell large-3`), the page content in `cell large-9` within `main-column-sub`, and an intentionally BLANK right column (`cell large-3`). Because it has no `Template Name:` header, it is the hierarchy default, not a selectable template. Pages needing other layouts pick their own template and bypass it.
+`page.php` IS the default for any page that does not select a template from the dropdown. It uses the inner-sub.html layout: hero (featured image, falls back to `inner-sub.jpg`), breadcrumbs (built from page ancestors), an intentionally BLANK left sidebar (`cell large-3`), the page content in `cell large-9` within `main-column-sub`, and an intentionally BLANK right column (`cell large-3`). Because it has no `Template Name:` header, it is the hierarchy default, not a selectable template. Pages needing other layouts pick their own template and bypass it. The hero `<p>` under the `<h1>` is intentionally left empty.
+
+## Category Archive Redirects
+
+Category archive URLs (`/category/{slug}/`) are redirected (301) to the Publications page, pre-filtered to that category via `?publication_cat={term_id}`. Implemented in `functions.php` section 11c on `template_redirect`. The Publications page is located by its template (`_wp_page_template` = `templates/template-publications.php`), so it works regardless of the page slug. Falls back to the homepage if no publications page is found. Use a 302 instead of 301 while testing to avoid browser-cached redirects.
 
 ## Single Post Template (`single.php`)
 
