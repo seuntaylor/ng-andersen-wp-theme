@@ -39,6 +39,7 @@ function theme_setup() {
         'footer-col-1'   => __( 'Footer Column 1', 'ng-andersen' ),
         'footer-col-2'   => __( 'Footer Column 2', 'ng-andersen' ),
         'footer-col-3'   => __( 'Footer Column 3', 'ng-andersen' ),
+        'footer-utility' => __( 'Footer Utility (Bottom Bar)', 'ng-andersen' ),
     ) );
 }
 add_action( 'after_setup_theme', 'theme_setup' );

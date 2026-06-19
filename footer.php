@@ -97,13 +97,25 @@
 
                         <!-- Footer Bottom Bar -->
                         <div class="footer-bottom">
-                            <p class="footer-copyright">&copy;Andersen Tax LLC and [INSERT LEGAL ENTITY NAME]. [INSERT LEGAL ENTITY NAME] is the [COUNTRY NAME] member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
+                            <p class="footer-copyright">&copy;Andersen Tax LLC and Andersen Tax LP. Andersen Tax LP is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
 
-                            <div class="footer-utility-menu">
-                                <ul>
-                                    <li><a href="#">Terms &amp; Conditions</a></li>
-                                </ul>
-                            </div>
+                            <?php
+                            if ( has_nav_menu( 'footer-utility' ) ) {
+                                ?>
+                                <div class="footer-utility-menu">
+                                    <?php
+                                    wp_nav_menu( array(
+                                        'theme_location' => 'footer-utility',
+                                        'container'      => false,
+                                        'menu_class'     => 'footer-utility-list',
+                                        'depth'          => 1,
+                                        'fallback_cb'    => false,
+                                    ) );
+                                    ?>
+                                </div>
+                                <?php
+                            }
+                            ?>
                         </div>
                         <!-- / Footer Bottom Bar -->
 

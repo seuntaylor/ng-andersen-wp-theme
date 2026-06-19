@@ -381,3 +381,28 @@
     text-align: center;
     width: 100%;
 }
+
+/* ============================================================
+   11. FOOTER UTILITY MENU (BOTTOM BAR)
+   ============================================================
+*/
+
+.footer-utility-menu .footer-utility-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.footer-utility-menu .footer-utility-list li {
+    display: flex;
+    align-items: center;
+}
+
+/* Pipe separator between items (not before the first) */
+.footer-utility-menu .footer-utility-list li + li::before {
+    content: "|";
+    margin: 0 10px;
+    opacity: 0.5;
+}
