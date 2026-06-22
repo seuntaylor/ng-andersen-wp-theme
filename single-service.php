@@ -43,9 +43,6 @@ get_header();
     <div class="container">
         <div class="text">
             <h1><?php the_title(); ?></h1>
-            <?php if ( ! empty( $short_desc ) ) { ?>
-                <p><?php echo esc_html( $short_desc ); ?></p>
-            <?php } ?>
         </div>
     </div>
 
