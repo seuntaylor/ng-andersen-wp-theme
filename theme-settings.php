@@ -948,16 +948,17 @@ function ng_andersen_get_post_hero_image( $post_id = null ) {
  * Uses the post's own featured image first; if none, falls back to the
  * category card image; finally to block1.jpg.
  *
- * @param int $post_id
+ * @param int    $post_id  Post ID (defaults to current post).
+ * @param string $size     WordPress image size: 'medium', 'large', 'full', etc. Default 'medium'.
  * @return string Image URL
  */
-function ng_andersen_get_post_card_image( $post_id = null ) {
+function ng_andersen_get_post_card_image( $post_id = null, $size = 'medium' ) {
     $post_id = $post_id ? $post_id : get_the_ID();
     $fallback = get_template_directory_uri() . '/assets/img/block1.jpg';
 
     // Featured image first
     if ( has_post_thumbnail( $post_id ) ) {
-        $url = get_the_post_thumbnail_url( $post_id, 'medium' );
+        $url = get_the_post_thumbnail_url( $post_id, $size );
         if ( $url ) {
             return $url;
         }
@@ -969,7 +970,7 @@ function ng_andersen_get_post_card_image( $post_id = null ) {
         $primary_cat = $cats[0]->term_id;
         $card_images = get_option( 'ng_andersen_category_card_images', array() );
         if ( is_array( $card_images ) && ! empty( $card_images[ $primary_cat ] ) ) {
-            $url = wp_get_attachment_image_url( absint( $card_images[ $primary_cat ] ), 'medium' );
+            $url = wp_get_attachment_image_url( absint( $card_images[ $primary_cat ] ), $size );
             if ( $url ) {
                 return $url;
             }
