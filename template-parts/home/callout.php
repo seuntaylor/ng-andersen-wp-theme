@@ -10,7 +10,7 @@
 ?>
 <div class="callout">
     <div class="bg img-bg">
-        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/callout.jpg' ); ?>" alt="">
+        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/bg_callout.webp' ); ?>" alt="">
     </div>
     <div class="container">
         <div class="text text-center">

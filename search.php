@@ -57,6 +57,28 @@ $search_term   = get_search_query();
                                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/img/block1.jpg' ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                                     <?php } ?>
                                 </a>
+                                <?php
+                                // Badge label: posts show their first category; other
+                                // post types show the post type's singular name.
+                                $badge_label = '';
+                                if ( 'post' === get_post_type() ) {
+                                    $cats = get_the_category();
+                                    if ( ! empty( $cats ) ) {
+                                        $badge_label = $cats[0]->name;
+                                    }
+                                } else {
+                                    $pt_obj = get_post_type_object( get_post_type() );
+                                    if ( $pt_obj ) {
+                                        $badge_label = $pt_obj->labels->singular_name;
+                                    }
+                                }
+
+                                if ( ! empty( $badge_label ) ) {
+                                    ?>
+                                    <span class="publication-category-badge"><?php echo esc_html( $badge_label ); ?></span>
+                                    <?php
+                                }
+                                ?>
                             </div>
                             <div class="text">
                                 <div class="text-body">

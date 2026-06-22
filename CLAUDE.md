@@ -50,24 +50,28 @@ ng-andersen/
 │       └── publications.js          (publications AJAX filtering and pagination)
 ├── template-parts/
 │   ├── home/                        (homepage section partials)
-│   │   └── blocks2.php              (featured + latest posts section - sticky-aware)
+│   │   ├── blocks2.php              (featured + latest posts section - sticky-aware)
+│   │   └── services.php             (homepage "Our Services" - first 3 services + View All button)
 │   └── page/
 ├── templates/                       (all custom page templates use template-{name}.php)
 │   ├── template-teams.php           (Team Members listing page)
 │   ├── template-locations.php       (Locations map page)
 │   ├── template-global-presence.php (Global Presence page)
 │   ├── template-contact.php         (Contact page - offices + CF7 form)
-│   └── template-publications.php    (Publications listing - search + category dropdown, AJAX)
+│   ├── template-publications.php    (Publications listing - search + category dropdown, AJAX)
+│   ├── template-services.php        (Services listing - cards, manual order)
+│   └── template-inner-sub.php       (OPTIONAL - same layout as page.php; can be removed)
 ├── functions.php                    (main theme functions)
 ├── theme-settings.php               (custom admin settings page)
 ├── header.php
-├── footer.php                       (dynamic social media icons from settings)
+├── footer.php                       (dynamic social icons + footer menus from menu locations)
 ├── front-page.php
 ├── index.php
-├── page.php
+├── page.php                         (DEFAULT page template - inner-sub layout, blank sidebars)
 ├── single.php                       (default single post template)
 ├── single-team_member.php           (CPT single template - note underscore)
-├── search.php                       (search results - 4-col card grid, 12 per page)
+├── single-service.php               (Service CPT single template)
+├── search.php                       (search results - 4-col card grid, 12 per page, post-type/category badge)
 ├── 404.php                          (full-width, no sidebar, search + home button)
 ├── searchform.php
 ├── style.css
@@ -95,9 +99,10 @@ The CSS load order is intentional and must be preserved:
 ### Team Member (`team_member`)
 - Slug: `team_member`, rewrite: `team-member`
 - Public: true
-- Supports: title, thumbnail, editor
+- Supports: title, thumbnail, editor, page-attributes
 - Meta fields: `_team_member_position`, `_team_member_location` (term_id), `_team_member_email`
 - Single template: `single-team_member.php` (note underscore in filename)
+- **Ordering**: uses `page-attributes` (the "Order" field). Both the AJAX search and the listing template order by `menu_order` ASC with `title` ASC as tiebreaker. Lower numbers appear first; default 0 falls back to alphabetical.
 - Flush rewrite rules after any CPT change: Settings > Permalinks > Save
 
 ### Team Location Taxonomy (`team_location`)
@@ -106,14 +111,24 @@ The CSS load order is intentional and must be preserved:
 - Location stored as term_id in `_team_member_location` meta key
 - Standard taxonomy meta box removed — location selected via custom dropdown in meta box
 
+### Service (`service`)
+- CPT key: `service`, rewrite slug: `service` (singles at `/service/service-name/`)
+- Public: true, `has_archive => false`
+- Supports: title, editor (long formatted description), thumbnail, page-attributes (manual ordering)
+- Meta field: `_service_short_description` (plain textarea, used in cards/listings)
+- Single template: `single-service.php` — hero (featured image) + short description as subtitle + `the_content()` as the long description
+- Listing: `template-services.php` — cards ordered by `menu_order` ASC; also surfaced on the homepage via `template-parts/home/services.php` (first 3 services + "View All Services" button)
+
 ## Post Meta Fields
 
 Registered on standard WordPress `post` post type (Section 13 in `functions.php`).
 
 | Meta Key | Type | Description |
 |---|---|---|
-| `_post_download_link` | URL | Link to downloadable file or resource |
-| `_post_release_date` | Date (Y-m-d) | Release date of the content |
+| `download_link` | URL | Link to downloadable file or resource (no underscore prefix — confirmed from DB) |
+| `release` | Date (Y-m-d) | Release date of the content (no underscore prefix — confirmed from DB) |
+
+Note: these two keys are stored WITHOUT the underscore prefix (confirmed against the live database), unlike most theme meta keys. `single.php` reads `download_link` to render the "Download File" button.
 
 ## NG Andersen Settings Admin Page
 
@@ -129,7 +144,7 @@ Accessible via **WordPress Admin > NG Andersen**. Defined in `theme-settings.php
 5. **Single Post** — Two sidebar widgets, each with: headline, source category, post count
    - **Related Posts** (`widget--news`) — image card style, count 1–6
    - **Resources** (`widget--resources`) — text list style with category label, count 2–6
-6. **Page Settings** — PLANNED, not yet built. Will hold the hero image fallback used by `ng_andersen_hero_image()`.
+6. **Category Images** — Per-category image management. Each category has a **Hero Image** (full size) and a **Card Fallback** (medium size), chosen via the WordPress media library picker with live previews. Stored as `array( term_id => attachment_id )`.
 
 ### Helper Functions:
 ```php
@@ -138,9 +153,17 @@ ng_andersen_get_social_links()               // Returns array: facebook, twitter
 ng_andersen_get_turnstile_keys()             // Returns array: site_key, secret_key
 ng_andersen_get_ga_settings()               // Returns array: enabled, tracking_id
 ng_andersen_get_single_post_settings()       // Returns array: widget_title, widget_cats[], widget_count, resources_title, resources_cats[], resources_count
+ng_andersen_get_post_hero_image( $post_id )  // Category hero image (full); always overrides featured image on single post hero; falls back to landing.jpg
+ng_andersen_get_post_card_image( $post_id )  // Featured image (medium) → category card fallback → block1.jpg
 ```
 
 Note: `widget_cats` and `resources_cats` are ARRAYS of category IDs (multi-select checkboxes), saved via `register_setting` with a sanitize callback that runs `array_map( 'absint', ... )`.
+
+### Category Images — how they apply:
+- **Hero** (single post): `ng_andersen_get_post_hero_image()` ALWAYS uses the category hero (full size), overriding the post's own featured image — this was a deliberate decision to escape blurry low-res featured images on the large hero. Falls back to `landing.jpg`.
+- **Cards** (home, publications, search): `ng_andersen_get_post_card_image()` uses the post's featured image first (medium), then the category card fallback, then `block1.jpg`.
+- **Multi-category posts**: the FIRST assigned category wins for both image types.
+- **Pages** are untouched — they keep using their own featured image for hero and cards.
 
 ## Custom Admin Color Scheme
 
@@ -168,37 +191,64 @@ Registers an "Andersen" option in Users > Profile > Administration Colour Scheme
 - `template-locations.php` — Locations map (external scripts)
 - `template-global-presence.php` — Global Presence page
 - `template-publications.php` — Publications listing: search box (title-only) + category dropdown, AJAX filtering and pagination. This is the SINGLE publications template (the earlier accordion-sidebar variant was retired in favour of the dropdown version).
+- `template-services.php` — Services listing (Service CPT cards, manual order)
+- `template-inner-sub.php` — OPTIONAL. Same layout as `page.php` (hero + blank sidebars + content). Kept only if the layout also needs to be selectable by name; otherwise it can be removed since `page.php` provides this layout by default.
 
-### Templates that SKIP the shared hero helper:
-PLANNED FEATURE (not yet built): `ng_andersen_hero_image()` will return a page's featured image as its hero background, falling back to a default set in the Page Settings tab, then to `landing.jpg`. When built, `template-global-presence.php` and `template-locations.php` will be excluded — they manage their own heroes.
+### Default Page Template (`page.php`)
+`page.php` IS the default for any page that does not select a template from the dropdown. It uses the inner-sub.html layout: hero (featured image, falls back to `inner-sub.jpg`), breadcrumbs (built from page ancestors), an intentionally BLANK left sidebar (`cell large-3`), the page content in `cell large-9` within `main-column-sub`, and an intentionally BLANK right column (`cell large-3`). Because it has no `Template Name:` header, it is the hierarchy default, not a selectable template. Pages needing other layouts pick their own template and bypass it. The hero `<p>` under the `<h1>` is intentionally left empty.
+
+## Search Results (`search.php`)
+
+4-column card grid (`large-3 medium-6`), 12 results per page, following the `section-blocks1 bg-gray` pattern. Includes both posts and pages. Each card has a badge overlaid top-right on the image:
+- **Posts** show their first category name (e.g. "Articles", "Newsletters")
+- **Other post types** (page, team_member, service) show the post type's singular label (e.g. "Page", "Team Member", "Service")
+
+The badge reuses the `.publication-category-badge` class; its CSS in `custom.css` is scoped to both `.section-blocks16` (publications) and `.section-blocks1` (search). Post cards use `ng_andersen_get_post_card_image()`; pages/other types use their featured image or `block1.jpg`.
+
+## Category Archive Redirects
+
+Category archive URLs (`/category/{slug}/`) are redirected (301) to the Publications page, pre-filtered to that category via `?publication_cat={term_id}`. Implemented in `functions.php` section 11c on `template_redirect`. The Publications page is located by its template (`_wp_page_template` = `templates/template-publications.php`), so it works regardless of the page slug. Falls back to the homepage if no publications page is found. Use a 302 instead of 301 while testing to avoid browser-cached redirects.
 
 ## Single Post Template (`single.php`)
 
 Default template for all blog posts. Structure:
-- Hero: post featured image as background, post title as `<h1>`, no subtitle
+- Hero: uses `ng_andersen_get_post_hero_image()` (category hero image, NOT the featured image), post title as `<h1>`, no subtitle
 - Breadcrumbs: Home → Category → Post title
 - Left sidebar (3 cols) — empty, preserved for layout
 - Main content (9 cols) containing:
-  - Content column (9 of 9) — `the_content()` inside `.main-column--content`
-  - Right column (3 of 9) — related posts widget using `.widget--news` style
+  - Content column (9 of 9) — `the_content()` inside `.main-column--content`, followed by a "Download File" button if the `download_link` meta is set
+  - Right column (3 of 9) — Related Posts widget (`widget--news`) and Resources widget (`widget--resources`)
 
 ### Related Posts Widget
 - Configured via **NG Andersen > Single Post** settings tab
 - Uses `widget--news` style (image card with title and Read More link)
-- Pulls posts from a defined category, excluding the current post
-- Only renders if a category is configured and posts are found
+- Pulls posts from defined categories (multi-select), excluding the current post, random order
+- Card images use `ng_andersen_get_post_card_image()` and link to the post
+- Only renders if categories are configured and posts are found
 
 ### Resources Widget
 - Also configured via **NG Andersen > Single Post** settings tab
 - Uses `widget--resources` style (text list with category label + linked title)
-- Category label comes from the post's first assigned category
-- Count: 2–4 posts
-- Only renders if a category is configured and posts are found
+- Category label comes from the post's first assigned category, prefixed with a Font Awesome `fa-file-lines` icon
+- Multi-select categories, random order, count 2–6
+- Only renders if categories are configured and posts are found
 - Both widgets use `post__not_in => array( get_the_ID() )` to exclude current post
 
 ## Footer (`footer.php`)
 
-Social media icons are dynamic — pulled from the Social Media tab in NG Andersen Settings. Icons display in this order: LinkedIn → Twitter/X → Facebook → Instagram → YouTube. An icon only shows if a URL is provided. Uses Font Awesome `fa-brands` icon classes.
+**Social icons** are dynamic — pulled from the Social Media tab in NG Andersen Settings. Display order: LinkedIn → Twitter/X → Facebook → Instagram → YouTube. An icon only shows if a URL is provided. Uses Font Awesome `fa-brands` classes.
+
+**Footer link columns** are driven by nav menu locations (registered in `theme_setup()`), NOT widgets — the old footer widget areas were removed. Locations:
+- `footer-col-1` ("Footer Column 1") — rendered with `menu-2cols` (splits into 2 sub-columns)
+- `footer-col-2` ("Footer Column 2") — rendered with `menu-2cols` (splits into 2 sub-columns)
+- `footer-col-3` ("Footer Column 3") — single column
+- `footer-utility` ("Footer Utility (Bottom Bar)") — the bottom-bar links (Terms, Privacy, etc.), separated by `|` via CSS (`li + li::before`)
+
+Each column is rendered by `ng_andersen_footer_menu_column( $location, $two_cols )`, which outputs a `<nav>` cell with the menu's NAME as the `<h5>` heading and the menu links below. Renders nothing if no menu is assigned to the location. A menu's name (and assignment) can be changed freely without affecting its links.
+
+## Homepage Services (`template-parts/home/services.php`)
+
+Displays the first 3 Service CPT entries by `menu_order` (manual ordering). Each item: linked featured image (falls back to `cta2.jpg`), title (`<h3>`), content trimmed to 20 words via `wp_trim_words()`, and a "Read More »" link. Below the items, a full-width centred "View All Services" button links to the page with slug `services` (via `get_page_by_path( 'services' )`); the button only renders if that page exists.
 
 ## Homepage Featured Posts (`template-parts/home/blocks2.php`)
 
@@ -346,3 +396,7 @@ Present tense imperative:
 - Google Analytics tag output to `<head>` (ID stored in settings, implementation pending)
 - Phone number field not yet added to Team Member CPT (placeholder exists in `single-team_member.php`)
 - Image size registration for consistent team photo dimensions
+
+## Optional Enhancements (no code required)
+
+- **Drag-and-drop ordering** for Team Members and Services: the free "Simple Page Ordering" plugin works automatically with any CPT that supports `page-attributes` (both do). Lets the client reorder by dragging in the admin list instead of typing Order numbers.
