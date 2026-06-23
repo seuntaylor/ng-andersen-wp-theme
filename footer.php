@@ -97,7 +97,7 @@
 
                         <!-- Footer Bottom Bar -->
                         <div class="footer-bottom">
-                            <p class="footer-copyright">&copy;Andersen Tax LLC and Andersen Tax LP. Andersen Tax LP is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
+                            <p class="footer-copyright">&copy;Andersen Tax LLC and Andersen Nigeria Limited. Andersen Nigeria Limited is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand "Andersen," "Andersen Tax," or "Andersen Tax &amp; Legal," or "Andersen Legal." Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.</p>
 
                             <?php
                             if ( has_nav_menu( 'footer-utility' ) ) {

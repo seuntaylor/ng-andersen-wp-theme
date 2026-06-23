@@ -16,7 +16,7 @@
 <div class="section-intro_text">
     <div class="container">
         <div class="text">
-            <p>Andersen is the Nigeria member firm of Andersen Global<sup>&reg;</sup>, an international association of member-firms comprised of tax, legal, and valuation professionals worldwide.</p>
+            <p>Andersen Nigeria Limited is the Nigerian member firm of Andersen Global<sup>&reg;</sup>, an international association of member-firms comprised of tax, legal, and valuation professionals worldwide.</p>
         </div>
     </div>
 </div>
