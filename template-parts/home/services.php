@@ -70,7 +70,7 @@ $home_services = new WP_Query( array(
 
         <?php
         // Link to the full services listing page — full width, centred
-        $services_page = get_page_by_path( 'services' );
+        $services_page = get_page_by_path( 'services-industries' );
         if ( $services_page ) {
             ?>
             <div class="services-list--cta">
