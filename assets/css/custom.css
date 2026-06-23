@@ -408,3 +408,32 @@
     margin: 0 10px;
     opacity: 0.5;
 }
+
+/* ============================================================
+   12. PAGE HERO TEXT WIDTH
+   ============================================================
+   Raise the hero text max-width cap ~50% (726px -> 1089px).
+   vw scaled proportionally to keep the same fluid curve.
+   Overrides app.css .section-page_hero .text
+*/
+
+.section-page_hero .text {
+    max-width: clamp(560px, 56.71875vw, 1089px);
+}
+
+/* ============================================================
+   13. CONTENT TEXT SIZE — UNIFORM
+   ============================================================
+   app.css sizes only the first paragraph (and figcaption) larger.
+   Apply that same larger size to all body-text elements so lists,
+   links, and later paragraphs match. Blockquote is left alone — it's
+   intentionally styled larger as a pull-quote in app.css.
+*/
+
+.section-sidebar .main-column--content > p,
+.section-sidebar .main-column--content ul,
+.section-sidebar .main-column--content ol,
+.section-sidebar .main-column--content li,
+.section-sidebar .main-column--content a {
+    font-size: clamp(15px, 1.0416666667vw, 20px);
+}

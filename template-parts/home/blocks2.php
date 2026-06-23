@@ -76,7 +76,7 @@ $list_ids    = array_slice( $ordered_ids, 1, 5 );
                     <div class="item item-featured">
                         <a href="<?php the_permalink(); ?>" class="image">
                             <span class="img-bg">
-                                <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
+                                <img src="<?php echo esc_url( ng_andersen_get_post_card_image( get_the_ID(), 'large' ) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>">
                             </span>
                         </a>
                         <div class="text">
