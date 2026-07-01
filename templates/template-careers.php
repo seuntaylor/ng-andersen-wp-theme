@@ -3,8 +3,8 @@
  * Template Name: Careers
  *
  * Based on the default page layout (page.php): hero, blank left sidebar,
- * page content, blank right column. Below the content section, the
- * Seamless Hiring job board widget is embedded at full width.
+ * page content, blank right column. After the page content, the
+ * Seamless Hiring job board widget is embedded inside the content column.
  *
  * The embed uses Bootstrap classes; the needed subset is reimplemented
  * in custom.css scoped to #SH_Embed to avoid Foundation conflicts.
@@ -71,10 +71,16 @@ get_header();
                 <div class="main-column">
                     <div class="grid-x grid-padding-x main-column-sub">
 
-                        <!-- Page content -->
+                        <!-- Page content + careers embed -->
                         <div class="cell large-9">
                             <div class="main-column--content">
                                 <?php the_content(); ?>
+
+                                <!-- Seamless Hiring job board embed -->
+                                <div id="SH_Embed"></div>
+                                <script src="https://andersen.seamlesshiring.com/js/embed.js"></script>
+                                <script type="text/javascript">document.getElementById('SH_Embed').innerHTML=SH_Embed.pull({key : 'eyJpdiI6IjlQdDhFdGtHMmZqcGloaWhoK0F2RUE9PSIsInZhbHVlIjoid1J0NVRDaXNPSWNoMjJJTEd0RGNKVW5qYzhsK2ZQRjlESXc1MnN1VDlwOEVvV3I5ajVjNFBidVo5emcyVDRGMmtBc0VLTjY1SDVUTmsyVXliTmx0TW1xYXZXTVBBaWlMZmRoL0hCZ2cxM0U9IiwibWFjIjoiOTllMGJjMWM0M2Q1ODM3ZWQ0MTcxMTczNTVjNjJkMWVhODI2MDA3ZGM0Nzc2YmE5YmI5Mjk1NzJlOGY2YTRkYiIsInRhZyI6IiJ9', base_url : 'https://andersen.seamlesshiring.com/'});</script>
+                                <!-- / Seamless Hiring embed -->
                             </div>
                         </div>
 
@@ -87,15 +93,6 @@ get_header();
             </div>
 
         </div>
-    </div>
-</div>
-
-<!-- Seamless Hiring Job Board — full width, outside the sidebar layout -->
-<div class="section-careers-embed">
-    <div class="container">
-        <div id="SH_Embed"></div>
-        <script src="https://andersen.seamlesshiring.com/js/embed.js"></script>
-        <script type="text/javascript">document.getElementById('SH_Embed').innerHTML=SH_Embed.pull({key : 'eyJpdiI6IjlQdDhFdGtHMmZqcGloaWhoK0F2RUE9PSIsInZhbHVlIjoid1J0NVRDaXNPSWNoMjJJTEd0RGNKVW5qYzhsK2ZQRjlESXc1MnN1VDlwOEVvV3I5ajVjNFBidVo5emcyVDRGMmtBc0VLTjY1SDVUTmsyVXliTmx0TW1xYXZXTVBBaWlMZmRoL0hCZ2cxM0U9IiwibWFjIjoiOTllMGJjMWM0M2Q1ODM3ZWQ0MTcxMTczNTVjNjJkMWVhODI2MDA3ZGM0Nzc2YmE5YmI5Mjk1NzJlOGY2YTRkYiIsInRhZyI6IiJ9', base_url : 'https://andersen.seamlesshiring.com/'});</script>
     </div>
 </div>
 
