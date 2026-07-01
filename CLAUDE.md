@@ -192,7 +192,7 @@ Registers an "Andersen" option in Users > Profile > Administration Colour Scheme
 - `template-global-presence.php` — Global Presence page
 - `template-publications.php` — Publications listing: search box (title-only) + category dropdown, AJAX filtering and pagination. This is the SINGLE publications template (the earlier accordion-sidebar variant was retired in favour of the dropdown version).
 - `template-services.php` — Services listing (Service CPT cards, manual order)
-- `template-careers.php` — Default page layout (hero + blank sidebars + content) with the Seamless Hiring job board widget embedded after the page content. Embed targets `#SH_Embed` via an external script from `andersen.seamlesshiring.com`.
+- `template-careers.php` — Default page layout (hero + blank sidebars + content) followed by the Seamless Hiring job board widget at full width below the content section. The embed uses Bootstrap 4 classes which conflict with Foundation 6; a scoped subset of Bootstrap rules is reimplemented in `custom.css` section 14, all inside `#SH_Embed`, so Foundation is untouched site-wide.
 - `template-inner-sub.php` — OPTIONAL. Same layout as `page.php` (hero + blank sidebars + content). Kept only if the layout also needs to be selectable by name; otherwise it can be removed since `page.php` provides this layout by default.
 
 ### Default Page Template (`page.php`)
