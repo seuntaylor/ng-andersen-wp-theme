@@ -19,7 +19,11 @@
  * 8. Single Post Sidebar Widgets
  * 9. 404 Error Page
  * 10. Homepage Services Section
- */
+ * 11. Footer Utility Menu (Bottom Bar)
+ * 12. Page Hero Text Width
+ * 13. Content Text Size — Uniform
+ * 14. Careers Embed — Scoped Bootstrap Classes
+ * 15. Active Menu Item Highlight
 
 /* ============================================================
    1. DROPDOWN NAVIGATION FIX
@@ -679,4 +683,18 @@
     margin-bottom: 4px;
     font-size: 14px;
     color: #333;
+}
+
+/* ============================================================
+   15. ACTIVE MENU ITEM HIGHLIGHT
+   ============================================================
+   WordPress adds .current-menu-item to the <li> of the active page
+   and .current-menu-ancestor to parent items when on a sub-page.
+   Specificity must beat .main-nav ul.lvl-1 a from app.css.
+*/
+
+.main-nav ul.lvl-1 li.current-menu-item > a,
+.main-nav ul.lvl-1 li.current_page_item > a,
+.main-nav ul.lvl-1 li.current-menu-ancestor > a {
+    color: #ab0e1e;
 }
