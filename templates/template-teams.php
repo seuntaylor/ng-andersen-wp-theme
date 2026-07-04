@@ -220,17 +220,19 @@ get_header();
 
                             <?php
                             // Pagination
-                            $total_pages = $query->max_num_pages;
+                            $total_pages  = $query->max_num_pages;
+                            $current_page = 1; // Server-side always renders page 1; AJAX handles the rest
+
                             if ( $total_pages > 1 ) {
                                 ?>
                                 <nav aria-label="Pagination">
                                     <ul class="pagination text-center">
                                         <?php
                                         // Previous button
-                                        if ( 1 > 1 ) {
+                                        if ( $current_page > 1 ) {
                                             ?>
                                             <li class="pagination-previous">
-                                                <a href="#" class="page-link" data-page="0">Previous</a>
+                                                <a href="#" class="page-link" data-page="<?php echo $current_page - 1; ?>">Previous</a>
                                             </li>
                                             <?php
                                         } else {
@@ -241,9 +243,8 @@ get_header();
 
                                         // Page numbers — show up to 7 page links or with ellipsis
                                         for ( $i = 1; $i <= $total_pages; $i++ ) {
-                                            // Show first 4 pages, ellipsis if needed, then last 2 pages
                                             if ( $i <= 4 || $i > $total_pages - 2 ) {
-                                                if ( $i == 1 ) {
+                                                if ( $i == $current_page ) {
                                                     ?>
                                                     <li class="current"><span class="show-for-sr">You're on page</span> <?php echo $i; ?></li>
                                                     <?php
@@ -253,7 +254,6 @@ get_header();
                                                     <?php
                                                 }
                                             } elseif ( $i == 5 && $total_pages > 7 ) {
-                                                // Show ellipsis
                                                 ?>
                                                 <li class="ellipsis"></li>
                                                 <?php
@@ -261,10 +261,10 @@ get_header();
                                         }
 
                                         // Next button
-                                        if ( 1 < $total_pages ) {
+                                        if ( $current_page < $total_pages ) {
                                             ?>
                                             <li class="pagination-next">
-                                                <a href="#" class="page-link" data-page="2" aria-label="Next page">Next</a>
+                                                <a href="#" class="page-link" data-page="<?php echo $current_page + 1; ?>" aria-label="Next page">Next</a>
                                             </li>
                                             <?php
                                         } else {
