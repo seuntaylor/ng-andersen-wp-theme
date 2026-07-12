@@ -27,6 +27,14 @@ add_action( 'admin_menu', function() {
 
 add_action( 'admin_init', function() {
     // ============================================================
+    // HOME PAGE
+    // ============================================================
+
+    register_setting( 'ng-andersen-settings', 'ng_andersen_home_legal_text', array(
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ) );
+
+    // ============================================================
     // OFFICE LOCATIONS
     // ============================================================
     
@@ -145,7 +153,7 @@ function ng_andersen_render_settings_page() {
     }
 
     // Get active tab
-    $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'offices';
+    $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'home';
     ?>
 
     <div class="wrap">
@@ -153,6 +161,9 @@ function ng_andersen_render_settings_page() {
 
         <!-- Tab Navigation -->
         <nav class="nav-tab-wrapper wp-clearfix">
+            <a href="?page=ng-andersen-settings&tab=home" class="nav-tab <?php echo $active_tab === 'home' ? 'nav-tab-active' : ''; ?>">
+                Home Page
+            </a>
             <a href="?page=ng-andersen-settings&tab=offices" class="nav-tab <?php echo $active_tab === 'offices' ? 'nav-tab-active' : ''; ?>">
                 Office Locations
             </a>
@@ -176,6 +187,14 @@ function ng_andersen_render_settings_page() {
         <!-- Tab Content -->
         <form method="post" action="options.php">
             <?php settings_fields( 'ng-andersen-settings' ); ?>
+
+            <!-- HOME PAGE TAB -->
+            <div class="tab-content" <?php echo $active_tab !== 'home' ? 'style="display:none;"' : ''; ?>>
+                <h2>Home Page</h2>
+                <p>Configure content displayed on the home page and across the site.</p>
+
+                <?php ng_andersen_render_home_page_section(); ?>
+            </div>
 
             <!-- OFFICE LOCATIONS TAB -->
             <div class="tab-content" <?php echo $active_tab !== 'offices' ? 'style="display:none;"' : ''; ?>>
@@ -238,6 +257,50 @@ function ng_andersen_render_settings_page() {
             margin-top: 20px;
         }
     </style>
+    <?php
+}
+
+/**
+ * Render the Home Page section.
+ * Currently contains the footer legal text field.
+ * Additional home page fields will be added here over time.
+ */
+function ng_andersen_render_home_page_section() {
+
+    // The template shown when the user clicks "Reset to default".
+    // Contains placeholder tokens for deployments on other markets.
+    $reset_default = "\u{00A9}Andersen Tax LLC and [INSERT LEGAL ENTITY NAME]. [INSERT LEGAL ENTITY NAME] is the [COUNTRY NAME] member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand \u{201C}Andersen,\u{201D} \u{201C}Andersen Tax,\u{201D} or \u{201C}Andersen Tax & Legal,\u{201D} or \u{201C}Andersen Legal.\u{201D} Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.";
+
+    // Default shown the first time the option has never been saved.
+    $live_default = "\u{00A9}Andersen Tax LLC and Andersen Nigeria Limited. Andersen Nigeria Limited is the Nigerian member firm of Andersen Global, a Swiss verein comprised of legally separate, independent member firms located throughout the world providing services under their own name or the brand \u{201C}Andersen,\u{201D} \u{201C}Andersen Tax,\u{201D} or \u{201C}Andersen Tax & Legal,\u{201D} or \u{201C}Andersen Legal.\u{201D} Andersen Global does not provide any services and has no responsibility for any actions of the member firms, and the member firms have no responsibility for any actions of Andersen Global. Your use of this website is subject to the terms and conditions governing it. Please read these terms and conditions before using the website.";
+
+    $legal_text = get_option( 'ng_andersen_home_legal_text', $live_default );
+    ?>
+
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <h3>Footer Legal Disclaimer</h3>
+    <p style="color: #666; font-size: 13px;">This disclaimer appears at the bottom of every page in the site footer.</p>
+
+    <label for="ng_andersen_home_legal_text" class="screen-reader-text">Legal Disclaimer</label>
+    <textarea
+        id="ng_andersen_home_legal_text"
+        name="ng_andersen_home_legal_text"
+        rows="8"
+        style="width: 100%; max-width: 800px; padding: 8px; font-family: inherit; line-height: 1.6;"
+    ><?php echo esc_textarea( $legal_text ); ?></textarea>
+    <p class="description">Plain text only. The text will appear exactly as written.</p>
+    <button type="button" id="ng-reset-legal-text" class="button" style="margin-top: 8px;">Reset to default</button>
+</div>
+
+    <script>
+    (function() {
+        var defaultText = <?php echo wp_json_encode( $reset_default ); ?>;
+        document.getElementById( 'ng-reset-legal-text' ).addEventListener( 'click', function( e ) {
+            e.preventDefault();
+            document.getElementById( 'ng_andersen_home_legal_text' ).value = defaultText;
+        } );
+    })();
+    </script>
     <?php
 }
 
