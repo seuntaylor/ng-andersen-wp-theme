@@ -12,7 +12,13 @@ get_header();
 <div class="section-page_hero gradient-diagonal" id="page-hero">
     <!-- Background Image -->
     <div class="bg img-bg">
-        <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/img/landing.jpg" alt="Team member hero">
+        <?php
+        $ng_team_hero_id  = absint( get_option( 'ng_andersen_team_hero_image', 0 ) );
+        $ng_team_hero_url = $ng_team_hero_id
+            ? wp_get_attachment_image_url( $ng_team_hero_id, 'full' )
+            : get_template_directory_uri() . '/assets/img/landing.jpg';
+        ?>
+        <img src="<?php echo esc_url( $ng_team_hero_url ); ?>" alt="Team member hero">
     </div>
 
     <!-- Breadcrumbs -->
