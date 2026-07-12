@@ -34,6 +34,43 @@ add_action( 'admin_init', function() {
         'sanitize_callback' => 'sanitize_textarea_field',
     ) );
 
+    // Callout section
+    register_setting( 'ng-andersen-settings', 'ng_andersen_callout_image' );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_callout_text', array(
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_callout_button_text', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_callout_button_url', array(
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_callout_button_new_tab', array(
+        'sanitize_callback' => function( $value ) {
+            return $value === '1' ? 1 : 0;
+        },
+    ) );
+
+    // CTA 1 section
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_image' );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_heading', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_text', array(
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_button_text', array(
+        'sanitize_callback' => 'sanitize_text_field',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_button_url', array(
+        'sanitize_callback' => 'esc_url_raw',
+    ) );
+    register_setting( 'ng-andersen-settings', 'ng_andersen_cta1_button_new_tab', array(
+        'sanitize_callback' => function( $value ) {
+            return $value === '1' ? 1 : 0;
+        },
+    ) );
+
     // ============================================================
     // OFFICE LOCATIONS
     // ============================================================
@@ -170,11 +207,8 @@ function ng_andersen_render_settings_page() {
             <a href="?page=ng-andersen-settings&tab=social" class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">
                 Social Media
             </a>
-            <a href="?page=ng-andersen-settings&tab=analytics" class="nav-tab <?php echo $active_tab === 'analytics' ? 'nav-tab-active' : ''; ?>">
-                Tracking & Analytics
-            </a>
-            <a href="?page=ng-andersen-settings&tab=captcha" class="nav-tab <?php echo $active_tab === 'captcha' ? 'nav-tab-active' : ''; ?>">
-                CAPTCHA API Keys
+            <a href="?page=ng-andersen-settings&tab=api-keys" class="nav-tab <?php echo $active_tab === 'api-keys' ? 'nav-tab-active' : ''; ?>">
+                API Keys
             </a>
             <a href="?page=ng-andersen-settings&tab=single-post" class="nav-tab <?php echo $active_tab === 'single-post' ? 'nav-tab-active' : ''; ?>">
                 Single Post
@@ -192,6 +226,10 @@ function ng_andersen_render_settings_page() {
             <div class="tab-content" <?php echo $active_tab !== 'home' ? 'style="display:none;"' : ''; ?>>
                 <h2>Home Page</h2>
                 <p>Configure content displayed on the home page and across the site.</p>
+
+                <?php ng_andersen_render_home_callout_section(); ?>
+
+                <?php ng_andersen_render_home_cta1_section(); ?>
 
                 <?php ng_andersen_render_home_page_section(); ?>
             </div>
@@ -216,19 +254,17 @@ function ng_andersen_render_settings_page() {
                 <?php ng_andersen_render_social_media_section(); ?>
             </div>
 
-            <!-- TRACKING & ANALYTICS TAB -->
-            <div class="tab-content" <?php echo $active_tab !== 'analytics' ? 'style="display:none;"' : ''; ?>>
-                <h2>Tracking & Analytics</h2>
+            <!-- API KEYS TAB -->
+            <div class="tab-content" <?php echo $active_tab !== 'api-keys' ? 'style="display:none;"' : ''; ?>>
+                <h2>API Keys</h2>
+                <p>Configure analytics tracking and security keys.</p>
+
+                <h3>Tracking &amp; Analytics</h3>
                 <p>Configure analytics and tracking services.</p>
-
                 <?php ng_andersen_render_analytics_section(); ?>
-            </div>
 
-            <!-- CAPTCHA API KEYS TAB -->
-            <div class="tab-content" <?php echo $active_tab !== 'captcha' ? 'style="display:none;"' : ''; ?>>
-                <h2>CAPTCHA API Keys</h2>
+                <h3>CAPTCHA API Keys</h3>
                 <p>Configure Cloudflare Turnstile API keys for form protection.</p>
-
                 <?php ng_andersen_render_captcha_section(); ?>
             </div>
 
@@ -257,6 +293,193 @@ function ng_andersen_render_settings_page() {
             margin-top: 20px;
         }
     </style>
+    <?php
+}
+
+/**
+ * Render the Callout section fields on the Home Page tab.
+ * Reuses the .ng-image-field media picker pattern from Category Images —
+ * no additional JS needed.
+ */
+function ng_andersen_render_home_callout_section() {
+    $image_id  = absint( get_option( 'ng_andersen_callout_image', 0 ) );
+    $image_src = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+    $text      = get_option( 'ng_andersen_callout_text', 'Andersen is an independent tax and business advisory firm with a worldwide presence through the member firms and collaborating firms of Andersen Global.' );
+    $btn_text  = get_option( 'ng_andersen_callout_button_text', 'Learn More' );
+    $btn_url   = get_option( 'ng_andersen_callout_button_url', '/about-us/' );
+    $btn_new_tab = (bool) get_option( 'ng_andersen_callout_button_new_tab', false );
+    ?>
+
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+        <h3>Callout Section</h3>
+        <p style="color: #666; font-size: 13px;">The full-width banner on the home page with a background image, text, and a call-to-action button.</p>
+
+        <p><strong>Background Image</strong></p>
+        <div class="ng-image-field">
+            <div class="ng-image-preview" style="margin-bottom: 8px;">
+                <img src="<?php echo esc_url( $image_src ); ?>" style="max-width: 300px; height: auto; display: <?php echo $image_src ? 'block' : 'none'; ?>; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <input type="hidden" name="ng_andersen_callout_image" value="<?php echo $image_id ?: ''; ?>" class="ng-image-id">
+            <button type="button" class="button ng-image-select">Select Image</button>
+            <button type="button" class="button ng-image-remove" style="<?php echo $image_id ? '' : 'display:none;'; ?>">Remove</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p><strong>Text</strong></p>
+        <label for="ng_andersen_callout_text" class="screen-reader-text">Callout Text</label>
+        <textarea
+            id="ng_andersen_callout_text"
+            name="ng_andersen_callout_text"
+            rows="4"
+            style="width: 100%; max-width: 800px; padding: 8px; font-family: inherit; line-height: 1.6;"
+        ><?php echo esc_textarea( $text ); ?></textarea>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p><strong>Button</strong></p>
+        <p class="description" style="margin-bottom: 12px;">Leave either field blank to hide the button.</p>
+        <table class="form-table" style="margin: 0;">
+            <tr>
+                <th scope="row" style="padding-left: 0; width: 100px;">
+                    <label for="ng_andersen_callout_button_text">Label</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_callout_button_text"
+                        name="ng_andersen_callout_button_text"
+                        value="<?php echo esc_attr( $btn_text ); ?>"
+                        style="width: 100%; max-width: 300px; padding: 8px;"
+                    >
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" style="padding-left: 0;">
+                    <label for="ng_andersen_callout_button_url">URL</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_callout_button_url"
+                        name="ng_andersen_callout_button_url"
+                        value="<?php echo esc_attr( $btn_url ); ?>"
+                        style="width: 100%; max-width: 500px; padding: 8px;"
+                        placeholder="https://example.com/page"
+                    >
+                    <label style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; cursor: pointer;">
+                        <input
+                            type="checkbox"
+                            name="ng_andersen_callout_button_new_tab"
+                            value="1"
+                            <?php checked( $btn_new_tab, true ); ?>
+                        >
+                        Open in new tab
+                    </label>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <?php
+}
+
+/**
+ * Render the CTA 1 section fields on the Home Page tab.
+ */
+function ng_andersen_render_home_cta1_section() {
+    $image_id    = absint( get_option( 'ng_andersen_cta1_image', 0 ) );
+    $image_src   = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+    $heading     = get_option( 'ng_andersen_cta1_heading', 'About Us' );
+    $text        = get_option( 'ng_andersen_cta1_text', 'We provide specialist Tax, Corporate and Commercial Advisory, Regulatory and Transactional Services, Transfer Pricing and business advisory services to resident and non-resident companies doing business in Nigeria, West Africa and globally. The firm consists of professionals with many years of experience in taxation, transfer pricing, accounting advisory and transactional services both at local and international levels.' );
+    $btn_text    = get_option( 'ng_andersen_cta1_button_text', 'More About Us' );
+    $btn_url     = get_option( 'ng_andersen_cta1_button_url', '/about-us/' );
+    $btn_new_tab = (bool) get_option( 'ng_andersen_cta1_button_new_tab', false );
+    ?>
+
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+        <h3>CTA 1 Section</h3>
+        <p style="color: #666; font-size: 13px;">The image-backed content block on the home page with a heading, text, and a call-to-action button.</p>
+
+        <p><strong>Background Image</strong></p>
+        <div class="ng-image-field">
+            <div class="ng-image-preview" style="margin-bottom: 8px;">
+                <img src="<?php echo esc_url( $image_src ); ?>" style="max-width: 300px; height: auto; display: <?php echo $image_src ? 'block' : 'none'; ?>; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <input type="hidden" name="ng_andersen_cta1_image" value="<?php echo $image_id ?: ''; ?>" class="ng-image-id">
+            <button type="button" class="button ng-image-select">Select Image</button>
+            <button type="button" class="button ng-image-remove" style="<?php echo $image_id ? '' : 'display:none;'; ?>">Remove</button>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p><strong>Heading</strong></p>
+        <label for="ng_andersen_cta1_heading" class="screen-reader-text">CTA 1 Heading</label>
+        <input
+            type="text"
+            id="ng_andersen_cta1_heading"
+            name="ng_andersen_cta1_heading"
+            value="<?php echo esc_attr( $heading ); ?>"
+            style="width: 100%; max-width: 600px; padding: 8px;"
+        >
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p><strong>Text</strong></p>
+        <label for="ng_andersen_cta1_text" class="screen-reader-text">CTA 1 Text</label>
+        <textarea
+            id="ng_andersen_cta1_text"
+            name="ng_andersen_cta1_text"
+            rows="5"
+            style="width: 100%; max-width: 800px; padding: 8px; font-family: inherit; line-height: 1.6;"
+        ><?php echo esc_textarea( $text ); ?></textarea>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p><strong>Button</strong></p>
+        <p class="description" style="margin-bottom: 12px;">Leave either field blank to hide the button.</p>
+        <table class="form-table" style="margin: 0;">
+            <tr>
+                <th scope="row" style="padding-left: 0; width: 100px;">
+                    <label for="ng_andersen_cta1_button_text">Label</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_cta1_button_text"
+                        name="ng_andersen_cta1_button_text"
+                        value="<?php echo esc_attr( $btn_text ); ?>"
+                        style="width: 100%; max-width: 300px; padding: 8px;"
+                    >
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" style="padding-left: 0;">
+                    <label for="ng_andersen_cta1_button_url">URL</label>
+                </th>
+                <td>
+                    <input
+                        type="text"
+                        id="ng_andersen_cta1_button_url"
+                        name="ng_andersen_cta1_button_url"
+                        value="<?php echo esc_attr( $btn_url ); ?>"
+                        style="width: 100%; max-width: 500px; padding: 8px;"
+                        placeholder="https://example.com/page"
+                    >
+                    <label style="display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; cursor: pointer;">
+                        <input
+                            type="checkbox"
+                            name="ng_andersen_cta1_button_new_tab"
+                            value="1"
+                            <?php checked( $btn_new_tab, true ); ?>
+                        >
+                        Open in new tab
+                    </label>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <?php
 }
 
