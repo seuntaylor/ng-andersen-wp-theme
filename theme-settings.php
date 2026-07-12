@@ -148,8 +148,11 @@ add_action( 'admin_init', function() {
     register_setting( 'ng-andersen-settings', 'ng_andersen_resources_widget_count' );
 
     // ============================================================
-    // CATEGORY IMAGES
+    // HERO IMAGES
     // ============================================================
+
+    // Team member pages — single shared hero image
+    register_setting( 'ng-andersen-settings', 'ng_andersen_team_hero_image' );
 
     // Hero images keyed by category ID — stored as array( term_id => attachment_id )
     register_setting( 'ng-andersen-settings', 'ng_andersen_category_hero_images', array(
@@ -214,7 +217,7 @@ function ng_andersen_render_settings_page() {
                 Single Post
             </a>
             <a href="?page=ng-andersen-settings&tab=category-images" class="nav-tab <?php echo $active_tab === 'category-images' ? 'nav-tab-active' : ''; ?>">
-                Category Images
+                Hero Images
             </a>
         </nav>
 
@@ -276,10 +279,15 @@ function ng_andersen_render_settings_page() {
                 <?php ng_andersen_render_single_post_section(); ?>
             </div>
 
-            <!-- CATEGORY IMAGES TAB -->
+            <!-- HERO IMAGES TAB -->
             <div class="tab-content" <?php echo $active_tab !== 'category-images' ? 'style="display:none;"' : ''; ?>>
-                <h2>Category Images</h2>
-                <p>Define images per category. The <strong>Hero Image</strong> is always used on the single post hero for posts in that category (overriding the post&rsquo;s own featured image). The <strong>Card Fallback</strong> is used on the home, publications, and search card grids only when a post has no featured image of its own.</p>
+                <h2>Hero Images</h2>
+                <p>Manage hero background images across the site.</p>
+
+                <?php ng_andersen_render_team_hero_image_section(); ?>
+
+                <h3 style="margin-top: 30px;">Publication Category Heroes</h3>
+                <p>The <strong>Hero Image</strong> is always used on the single post hero for posts in that category (overriding the post&rsquo;s own featured image). The <strong>Card Fallback</strong> is used on the home, publications, and search card grids only when a post has no featured image of its own.</p>
 
                 <?php ng_andersen_render_category_images_section(); ?>
             </div>
@@ -310,7 +318,7 @@ function ng_andersen_render_home_callout_section() {
     $btn_new_tab = (bool) get_option( 'ng_andersen_callout_button_new_tab', false );
     ?>
 
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
         <h3>Callout Section</h3>
         <p style="color: #666; font-size: 13px;">The full-width banner on the home page with a background image, text, and a call-to-action button.</p>
 
@@ -397,7 +405,7 @@ function ng_andersen_render_home_cta1_section() {
     $btn_new_tab = (bool) get_option( 'ng_andersen_cta1_button_new_tab', false );
     ?>
 
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
         <h3>CTA 1 Section</h3>
         <p style="color: #666; font-size: 13px;">The image-backed content block on the home page with a heading, text, and a call-to-action button.</p>
 
@@ -500,7 +508,7 @@ function ng_andersen_render_home_page_section() {
     $legal_text = get_option( 'ng_andersen_home_legal_text', $live_default );
     ?>
 
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
     <h3>Footer Legal Disclaimer</h3>
     <p style="color: #666; font-size: 13px;">This disclaimer appears at the bottom of every page in the site footer.</p>
 
@@ -538,7 +546,7 @@ function ng_andersen_render_office_section( $office_number ) {
     $map_code = get_option( "ng_andersen_office_{$office_number}_map_code" );
     ?>
 
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
         <h3>Office <?php echo absint( $office_number ); ?></h3>
 
         <table class="form-table">
@@ -649,6 +657,7 @@ function ng_andersen_render_social_media_section() {
     $youtube = get_option( 'ng_andersen_social_youtube' );
     ?>
 
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
     <table class="form-table">
         <tr>
             <th scope="row">
@@ -735,6 +744,7 @@ function ng_andersen_render_social_media_section() {
             </td>
         </tr>
     </table>
+    </div>
 
     <?php
 }
@@ -747,6 +757,7 @@ function ng_andersen_render_analytics_section() {
     $ga_enabled = get_option( 'ng_andersen_ga_enabled' );
     ?>
 
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
     <table class="form-table">
         <tr>
             <th scope="row">
@@ -781,6 +792,7 @@ function ng_andersen_render_analytics_section() {
             </td>
         </tr>
     </table>
+    </div>
 
     <?php
 }
@@ -793,6 +805,7 @@ function ng_andersen_render_captcha_section() {
     $secret_key = get_option( 'ng_andersen_turnstile_secret_key' );
     ?>
 
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
     <table class="form-table">
         <tr>
             <th scope="row">
@@ -828,6 +841,7 @@ function ng_andersen_render_captcha_section() {
             </td>
         </tr>
     </table>
+    </div>
 
     <?php
 }
@@ -912,7 +926,7 @@ function ng_andersen_render_single_post_section() {
     ?>
 
     <!-- Related Posts Widget (widget--news) -->
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #0073aa; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
         <h3>Related Posts Widget</h3>
         <p style="color: #666; font-size: 13px;">Displays post cards with image and title. Uses the <code>widget--news</code> style. Posts are picked randomly from the selected categories.</p>
 
@@ -973,7 +987,7 @@ function ng_andersen_render_single_post_section() {
     </div>
 
     <!-- Resources Widget (widget--resources) -->
-    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #46b450; border-radius: 4px;">
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
         <h3>Resources Widget</h3>
         <p style="color: #666; font-size: 13px;">Displays a text list with category label and linked title. Uses the <code>widget--resources</code> style. Posts are picked randomly from the selected categories.</p>
 
@@ -1081,6 +1095,30 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 } );
 
 /**
+ * Render the Team Member Hero Image section.
+ * Single image picker used as the background on all single team member pages.
+ */
+function ng_andersen_render_team_hero_image_section() {
+    $image_id  = absint( get_option( 'ng_andersen_team_hero_image', 0 ) );
+    $image_src = $image_id ? wp_get_attachment_image_url( $image_id, 'medium' ) : '';
+    ?>
+
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
+        <h3>Team Member Hero Image</h3>
+        <div class="ng-image-field">
+            <div class="ng-image-preview" style="margin-bottom: 8px;">
+                <img src="<?php echo esc_url( $image_src ); ?>" style="max-width: 300px; height: auto; display: <?php echo $image_src ? 'block' : 'none'; ?>; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <input type="hidden" name="ng_andersen_team_hero_image" value="<?php echo $image_id ?: ''; ?>" class="ng-image-id">
+            <button type="button" class="button ng-image-select">Select Image</button>
+            <button type="button" class="button ng-image-remove" style="<?php echo $image_id ? '' : 'display:none;'; ?>">Remove</button>
+        </div>
+    </div>
+
+    <?php
+}
+
+/**
  * Render the Category Images section.
  * Lists every category with a Hero Image picker and a Card Fallback picker,
  * each showing a live preview.
@@ -1107,6 +1145,7 @@ function ng_andersen_render_category_images_section() {
     }
     ?>
 
+    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #ab0e1e; border-radius: 4px;">
     <table class="form-table ng-category-images">
         <thead>
             <tr>
@@ -1195,6 +1234,7 @@ function ng_andersen_render_category_images_section() {
         });
     })(jQuery);
     </script>
+    </div>
     <?php
 }
 
